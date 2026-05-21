@@ -67,6 +67,19 @@ export const authOptions: NextAuthOptions = {
         token.username = (user as any).username;
         token.roles = (user as any).roles;
         token.mustChangePassword = (user as any).mustChangePassword;
+      } else if (token.id) {
+        // Refresh token on every session call to get latest mustChangePassword status
+        const user = await prisma.staffUser.findUnique({
+          where: { id: token.id as string },
+          include: {
+            staffUserRoles: { include: { role: true } },
+          },
+        });
+        
+        if (user) {
+          token.mustChangePassword = user.mustChangePassword;
+          token.roles = user.staffUserRoles.map((r) => r.role.name);
+        }
       }
       return token;
     },
