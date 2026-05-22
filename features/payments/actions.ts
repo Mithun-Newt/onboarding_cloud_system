@@ -10,6 +10,42 @@ import { PaymentMode, PaymentStatus } from "@prisma/client";
 interface RecordPaymentInput {
   feeType: string;
   amount: number;
+  remarks?: string;
+}
+
+export async function recordPayment(admissionId: string, data: RecordPaymentInput) {
+  const session = await requireAuth();
+
+  const admission = await prisma.admissionApplication.findUnique({
+    where: { id: admissionId },
+  });
+  if (!admission) throw new Error("Admission not found");
+
+  const payment = await prisma.payment.create({
+    data: {
+      admissionId,
+      feeType: data.feeType,
+      amount: data.amount,
+      paymentMode: PaymentMode.CASH, // Default placeholder
+      paymentStatus: PaymentStatus.PENDING,
+      remarks: data.remarks,
+    },
+  });
+
+  await createAuditLog({
+    actorUserId: session.user.id,
+    action: "RECORD_PENDING_PAYMENT",
+    entityType: "Payment",
+    entityId: payment.id,
+    newValue: { feeType: data.feeType, amount: data.amount },
+  });
+
+  revalidatePath(`/admissions/${admissionId}`);
+  revalidatePath("/payments");
+  return payment;
+}
+
+interface CollectPaymentInput {
   paymentMode: string;
   paymentDate?: string;
   chequeNo?: string;
@@ -19,20 +55,21 @@ interface RecordPaymentInput {
   remarks?: string;
 }
 
-export async function recordPayment(admissionId: string, data: RecordPaymentInput) {
+export async function collectPayment(paymentId: string, data: CollectPaymentInput) {
   const session = await requireAuth();
 
   if (data.paymentMode === "WAIVER" && !data.waiverReason) {
     throw new Error("Waiver reason is required");
   }
 
-  const admission = await prisma.admissionApplication.findUnique({
-    where: { id: admissionId },
-    include: { registration: { include: { academicYear: true } } },
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    include: { admission: { include: { registration: { include: { academicYear: true } } } } },
   });
-  if (!admission) throw new Error("Admission not found");
+  if (!payment) throw new Error("Payment not found");
 
-  const yearCode = getAcademicYearCode(admission.registration.academicYear.label);
+  // Generate receipt no
+  const yearCode = getAcademicYearCode(payment.admission.registration.academicYear.label);
   const seq = await generateSequenceNumber("RECEIPT", yearCode);
   const receiptNo = formatReceiptNo(yearCode, seq);
 
@@ -41,12 +78,10 @@ export async function recordPayment(admissionId: string, data: RecordPaymentInpu
       ? PaymentStatus.WAIVED
       : PaymentStatus.PAID;
 
-  const payment = await prisma.payment.create({
+  const updatedPayment = await prisma.payment.update({
+    where: { id: paymentId },
     data: {
-      admissionId,
       receiptNo,
-      feeType: data.feeType,
-      amount: data.amount,
       paymentMode: data.paymentMode as PaymentMode,
       paymentStatus,
       paymentDate: data.paymentDate ? new Date(data.paymentDate) : new Date(),
@@ -61,16 +96,48 @@ export async function recordPayment(admissionId: string, data: RecordPaymentInpu
 
   await createAuditLog({
     actorUserId: session.user.id,
-    action: "RECORD_PAYMENT",
+    action: "COLLECT_PAYMENT",
     entityType: "Payment",
-    entityId: payment.id,
-    newValue: { receiptNo, feeType: data.feeType, amount: data.amount },
+    entityId: paymentId,
+    newValue: { receiptNo, amount: Number(payment.amount), paymentStatus },
   });
 
-  revalidatePath(`/admissions/${admissionId}`);
+  revalidatePath(`/admissions/${payment.admissionId}`);
   revalidatePath("/payments");
-  return payment;
+  return updatedPayment;
 }
+
+export async function deletePendingPayment(paymentId: string) {
+  const session = await requireAuth();
+
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+  });
+  if (!payment) throw new Error("Payment not found");
+
+  if (payment.feeType === "Confirmation Fee") {
+    throw new Error("Confirmation Fee is mandatory and cannot be deleted");
+  }
+  if (payment.paymentStatus !== "PENDING" && payment.paymentStatus !== "PARTIAL") {
+    throw new Error("Only pending or partial payments can be deleted");
+  }
+
+  await prisma.payment.delete({
+    where: { id: paymentId },
+  });
+
+  await createAuditLog({
+    actorUserId: session.user.id,
+    action: "DELETE_PENDING_PAYMENT",
+    entityType: "Payment",
+    entityId: paymentId,
+    oldValue: { feeType: payment.feeType, amount: Number(payment.amount) },
+  });
+
+  revalidatePath(`/admissions/${payment.admissionId}`);
+  revalidatePath("/payments");
+}
+
 
 export async function getPayments(params: {
   academicYearId?: string;

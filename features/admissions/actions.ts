@@ -247,9 +247,11 @@ export async function confirmAdmission(admissionId: string) {
     }
   }
 
-  const pendingPayments = admission.payments.filter((p) => p.paymentStatus === "PENDING" || p.paymentStatus === "PARTIAL");
-  if (pendingPayments.length > 0) {
-    throw new Error("There are pending fee payments. Collect payment or record waiver before confirming.");
+  const pendingConfirmationFee = admission.payments.find(
+    (p) => p.feeType === "Confirmation Fee" && (p.paymentStatus === "PENDING" || p.paymentStatus === "PARTIAL")
+  );
+  if (pendingConfirmationFee) {
+    throw new Error("Confirmation Fee is pending. Collect payment or record waiver before confirming.");
   }
 
   const yearCode = getAcademicYearCode(admission.registration.academicYear.label);
@@ -405,43 +407,7 @@ export async function saveTransportRequest(
       },
     });
 
-    // 2. Manage the "Transport Fee (Annual)" payment record
-    if (data.required && data.routeId) {
-      // Check if a payment for Transport Fee (Annual) already exists
-      const existingPayment = await prisma.payment.findFirst({
-        where: {
-          admissionId,
-          feeType: "Transport Fee (Annual)",
-        },
-      });
 
-      if (!existingPayment) {
-        // Query the default Transport Fee from database, fallback to 8000
-        const transportFeeItem = await prisma.feeItem.findFirst({
-          where: { name: "Transport Fee (Annual)" },
-        });
-        const defaultAmount = transportFeeItem ? Number(transportFeeItem.defaultAmount) : 8000;
-
-        await prisma.payment.create({
-          data: {
-            admissionId,
-            feeType: "Transport Fee (Annual)",
-            amount: defaultAmount,
-            paymentMode: "CASH",
-            paymentStatus: "PENDING",
-          },
-        });
-      }
-    } else {
-      // If transport is not required, delete the PENDING / PARTIAL transport fee payment
-      await prisma.payment.deleteMany({
-        where: {
-          admissionId,
-          feeType: "Transport Fee (Annual)",
-          paymentStatus: { in: ["PENDING", "PARTIAL"] },
-        },
-      });
-    }
 
     await createAuditLog({
       actorUserId: session.user.id,
