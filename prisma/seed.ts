@@ -150,6 +150,7 @@ async function main() {
     { name: "Books & Stationery", defaultAmount: 3000 },
     { name: "Uniform Fee", defaultAmount: 2000 },
     { name: "Activity Fee", defaultAmount: 2000 },
+    { name: "Confirmation Fee", defaultAmount: 15000 },
   ];
 
   for (const fi of feeItems) {
@@ -197,6 +198,69 @@ async function main() {
       update: {},
       create: s,
     });
+  }
+
+  // Seeding Bus Routes and Bus Stops
+  const routesData = [
+    {
+      routeNo: "R-01",
+      name: "East Tambaram Route",
+      stops: [
+        { stopName: "Selaiyur", stage: "Stage A", pickupTime: "07:30 AM", dropTime: "04:30 PM" },
+        { stopName: "Camp Road", stage: "Stage B", pickupTime: "07:45 AM", dropTime: "04:15 PM" },
+        { stopName: "Tambaram Gate", stage: "Stage C", pickupTime: "08:00 AM", dropTime: "04:00 PM" },
+      ],
+    },
+    {
+      routeNo: "R-02",
+      name: "Velachery Route",
+      stops: [
+        { stopName: "Velachery Jn", stage: "Stage A", pickupTime: "07:15 AM", dropTime: "04:45 PM" },
+        { stopName: "Vijayanagar", stage: "Stage B", pickupTime: "07:30 AM", dropTime: "04:30 PM" },
+        { stopName: "Medavakkam Jn", stage: "Stage C", pickupTime: "07:50 AM", dropTime: "04:10 PM" },
+      ],
+    },
+    {
+      routeNo: "R-03",
+      name: "Chromepet Route",
+      stops: [
+        { stopName: "Chromepet Bus Stand", stage: "Stage A", pickupTime: "07:20 AM", dropTime: "04:40 PM" },
+        { stopName: "Mit Bridge", stage: "Stage B", pickupTime: "07:35 AM", dropTime: "04:25 PM" },
+        { stopName: "Pallavaram", stage: "Stage C", pickupTime: "07:50 AM", dropTime: "04:10 PM" },
+      ],
+    },
+  ];
+
+  for (const r of routesData) {
+    let route = await prisma.busRoute.findFirst({
+      where: { routeNo: r.routeNo },
+    });
+    if (!route) {
+      route = await prisma.busRoute.create({
+        data: {
+          routeNo: r.routeNo,
+          name: r.name,
+          isActive: true,
+        },
+      });
+    }
+
+    for (const s of r.stops) {
+      const existingStop = await prisma.busStop.findFirst({
+        where: { routeId: route.id, stopName: s.stopName },
+      });
+      if (!existingStop) {
+        await prisma.busStop.create({
+          data: {
+            routeId: route.id,
+            stopName: s.stopName,
+            stage: s.stage,
+            pickupTime: s.pickupTime,
+            dropTime: s.dropTime,
+          },
+        });
+      }
+    }
   }
 
   console.log("✅ Database seeded successfully.");

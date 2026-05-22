@@ -13,6 +13,7 @@ import { PrevSchoolTab } from "./tabs/prev-school-tab";
 import { MedicalTab } from "./tabs/medical-tab";
 import { DocumentsTab } from "./tabs/documents-tab";
 import { PaymentsTab } from "./tabs/payments-tab";
+import { TransportTab } from "./tabs/transport-tab";
 import { ConfirmAdmissionButton } from "./confirm-button";
 import { CancelAdmissionButton } from "./cancel-button";
 
@@ -50,7 +51,10 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
 
   if (!admission) notFound();
 
-  const documentTypes = await prisma.documentType.findMany({ where: { isActive: true }, orderBy: { name: "asc" } });
+  const [documentTypes, busRoutes] = await Promise.all([
+    prisma.documentType.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
+    prisma.busRoute.findMany({ where: { isActive: true }, include: { busStops: true }, orderBy: { routeNo: "asc" } }),
+  ]);
 
   const status = STATUS_BADGES[admission.status] ?? { label: admission.status, variant: "outline" };
 
@@ -92,6 +96,7 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
           <TabsTrigger value="school">Prev School</TabsTrigger>
           <TabsTrigger value="medical">Medical</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="transport">Transport</TabsTrigger>
           <TabsTrigger value="payments">Fees & Payments</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
@@ -110,6 +115,9 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
         </TabsContent>
         <TabsContent value="documents">
           <DocumentsTab admission={admission} documentTypes={documentTypes} />
+        </TabsContent>
+        <TabsContent value="transport">
+          <TransportTab admission={admission} busRoutes={busRoutes} />
         </TabsContent>
         <TabsContent value="payments">
           <PaymentsTab admission={admission} />

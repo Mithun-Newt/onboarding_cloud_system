@@ -6,6 +6,7 @@ import { createAuditLog } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { RoleName, AdmissionStatus, RegistrationStatus } from "@prisma/client";
 import { generateSequenceNumber, formatAdmissionNo, getAcademicYearCode } from "@/lib/utils";
+import { getConfirmationFeeForGrade } from "@/lib/fee-constants";
 
 export async function createAdmission(registrationId: string) {
   try {
@@ -13,7 +14,7 @@ export async function createAdmission(registrationId: string) {
 
     const reg = await prisma.registration.findUnique({
       where: { id: registrationId },
-      include: { academicYear: true },
+      include: { academicYear: true, grade: true },
     });
     if (!reg) throw new Error("Registration not found");
     if (reg.status === RegistrationStatus.ADMITTED) throw new Error("Already admitted");
@@ -40,6 +41,18 @@ export async function createAdmission(registrationId: string) {
         gradeId: reg.gradeId,
         studentId: student.id,
         status: AdmissionStatus.DRAFT,
+      },
+    });
+
+    // Create default grade-based confirmation fee payment record (PENDING status)
+    const confirmationFeeAmount = getConfirmationFeeForGrade(reg.grade.name);
+    await prisma.payment.create({
+      data: {
+        admissionId: admission.id,
+        feeType: "Confirmation Fee",
+        amount: confirmationFeeAmount,
+        paymentMode: "CASH",
+        paymentStatus: "PENDING",
       },
     });
 
@@ -354,5 +367,93 @@ export async function getAdmissions(params: {
   } catch (error) {
     console.error("GET_ADMISSIONS_ERROR:", error);
     return { items: [], total: 0, page: 1, pageSize: 20, totalPages: 0 };
+  }
+}
+
+export async function saveTransportRequest(
+  admissionId: string,
+  data: {
+    required: boolean;
+    routeId?: string | null;
+    stopId?: string | null;
+    remarks?: string | null;
+  }
+) {
+  try {
+    const session = await requireAuth();
+
+    const admission = await prisma.admissionApplication.findUnique({
+      where: { id: admissionId },
+    });
+    if (!admission) throw new Error("Admission not found");
+
+    // 1. Update/Upsert TransportRequest
+    await prisma.transportRequest.upsert({
+      where: { admissionId },
+      update: {
+        required: data.required,
+        routeId: data.required ? data.routeId : null,
+        stopId: data.required ? data.stopId : null,
+        remarks: data.remarks ?? null,
+      },
+      create: {
+        admissionId,
+        required: data.required,
+        routeId: data.required ? data.routeId : null,
+        stopId: data.required ? data.stopId : null,
+        remarks: data.remarks ?? null,
+      },
+    });
+
+    // 2. Manage the "Transport Fee (Annual)" payment record
+    if (data.required && data.routeId) {
+      // Check if a payment for Transport Fee (Annual) already exists
+      const existingPayment = await prisma.payment.findFirst({
+        where: {
+          admissionId,
+          feeType: "Transport Fee (Annual)",
+        },
+      });
+
+      if (!existingPayment) {
+        // Query the default Transport Fee from database, fallback to 8000
+        const transportFeeItem = await prisma.feeItem.findFirst({
+          where: { name: "Transport Fee (Annual)" },
+        });
+        const defaultAmount = transportFeeItem ? Number(transportFeeItem.defaultAmount) : 8000;
+
+        await prisma.payment.create({
+          data: {
+            admissionId,
+            feeType: "Transport Fee (Annual)",
+            amount: defaultAmount,
+            paymentMode: "CASH",
+            paymentStatus: "PENDING",
+          },
+        });
+      }
+    } else {
+      // If transport is not required, delete the PENDING / PARTIAL transport fee payment
+      await prisma.payment.deleteMany({
+        where: {
+          admissionId,
+          feeType: "Transport Fee (Annual)",
+          paymentStatus: { in: ["PENDING", "PARTIAL"] },
+        },
+      });
+    }
+
+    await createAuditLog({
+      actorUserId: session.user.id,
+      action: "UPDATE_TRANSPORT",
+      entityType: "AdmissionApplication",
+      entityId: admissionId,
+      newValue: { required: data.required, routeId: data.routeId, stopId: data.stopId },
+    });
+
+    revalidatePath(`/admissions/${admissionId}`);
+  } catch (error) {
+    console.error("SAVE_TRANSPORT_REQUEST_ERROR:", error);
+    throw error instanceof Error ? error : new Error("Failed to save transport details");
   }
 }
