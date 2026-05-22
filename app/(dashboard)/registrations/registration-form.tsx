@@ -216,10 +216,10 @@ export function RegistrationForm({
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Enquiry / Reference Source</Label>
-            <Select value={watch("enquirySourceId") ?? ""} onValueChange={(v) => setValue("enquirySourceId", v || undefined)}>
+            <Select value={watch("enquirySourceId") ?? "__all__"} onValueChange={(v) => setValue("enquirySourceId", v === "__all__" ? undefined : v)}>
               <SelectTrigger><SelectValue placeholder="How did they hear about us?" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Not specified</SelectItem>
+                <SelectItem value="__all__">Not specified</SelectItem>
                 {enquirySources.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
               </SelectContent>
             </Select>

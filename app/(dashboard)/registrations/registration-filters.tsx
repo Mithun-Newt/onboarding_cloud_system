@@ -28,7 +28,7 @@ export function RegistrationFilters({ academicYears, grades }: Props) {
   const set = useCallback(
     (key: string, value: string | null) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (value) params.set(key, value);
+      if (value && value !== "__all__") params.set(key, value);
       else params.delete(key);
       params.delete("page");
       router.push(`${pathname}?${params.toString()}`);
@@ -56,36 +56,36 @@ export function RegistrationFilters({ academicYears, grades }: Props) {
         />
       </div>
 
-      <Select value={searchParams.get("academicYearId") ?? ""} onValueChange={(v) => set("academicYearId", v || null)}>
+      <Select value={searchParams.get("academicYearId") ?? "__all__"} onValueChange={(v) => set("academicYearId", v)}>
         <SelectTrigger className="w-36">
           <SelectValue placeholder="All years" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All years</SelectItem>
+          <SelectItem value="__all__">All years</SelectItem>
           {academicYears.map((y) => (
             <SelectItem key={y.id} value={y.id}>{y.label}</SelectItem>
           ))}
         </SelectContent>
       </Select>
 
-      <Select value={searchParams.get("gradeId") ?? ""} onValueChange={(v) => set("gradeId", v || null)}>
+      <Select value={searchParams.get("gradeId") ?? "__all__"} onValueChange={(v) => set("gradeId", v)}>
         <SelectTrigger className="w-32">
           <SelectValue placeholder="All grades" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All grades</SelectItem>
+          <SelectItem value="__all__">All grades</SelectItem>
           {grades.map((g) => (
             <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
           ))}
         </SelectContent>
       </Select>
 
-      <Select value={searchParams.get("status") ?? ""} onValueChange={(v) => set("status", v || null)}>
+      <Select value={searchParams.get("status") ?? "__all__"} onValueChange={(v) => set("status", v)}>
         <SelectTrigger className="w-40">
           <SelectValue placeholder="All statuses" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All statuses</SelectItem>
+          <SelectItem value="__all__">All statuses</SelectItem>
           {STATUSES.map((s) => (
             <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
           ))}

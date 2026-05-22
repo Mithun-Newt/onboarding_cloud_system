@@ -22,7 +22,7 @@ export function ReportFilters({ academicYears, grades, campuses, showDateRange }
   const set = useCallback(
     (key: string, value: string | null) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (value) params.set(key, value);
+      if (value && value !== "__all__") params.set(key, value);
       else params.delete(key);
       router.push(`${pathname}?${params.toString()}`);
     },
@@ -34,10 +34,10 @@ export function ReportFilters({ academicYears, grades, campuses, showDateRange }
       {academicYears && (
         <div className="space-y-1">
           <Label className="text-xs">Academic Year</Label>
-          <Select value={searchParams.get("academicYearId") ?? ""} onValueChange={(v) => set("academicYearId", v || null)}>
+          <Select value={searchParams.get("academicYearId") ?? "__all__"} onValueChange={(v) => set("academicYearId", v)}>
             <SelectTrigger className="w-32 h-8"><SelectValue placeholder="All years" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All</SelectItem>
+              <SelectItem value="__all__">All</SelectItem>
               {academicYears.map((y) => <SelectItem key={y.id} value={y.id}>{y.label}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -46,10 +46,10 @@ export function ReportFilters({ academicYears, grades, campuses, showDateRange }
       {grades && (
         <div className="space-y-1">
           <Label className="text-xs">Grade</Label>
-          <Select value={searchParams.get("gradeId") ?? ""} onValueChange={(v) => set("gradeId", v || null)}>
+          <Select value={searchParams.get("gradeId") ?? "__all__"} onValueChange={(v) => set("gradeId", v)}>
             <SelectTrigger className="w-28 h-8"><SelectValue placeholder="All" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All</SelectItem>
+              <SelectItem value="__all__">All</SelectItem>
               {grades.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -58,10 +58,10 @@ export function ReportFilters({ academicYears, grades, campuses, showDateRange }
       {campuses && (
         <div className="space-y-1">
           <Label className="text-xs">Campus</Label>
-          <Select value={searchParams.get("campusId") ?? ""} onValueChange={(v) => set("campusId", v || null)}>
+          <Select value={searchParams.get("campusId") ?? "__all__"} onValueChange={(v) => set("campusId", v)}>
             <SelectTrigger className="w-32 h-8"><SelectValue placeholder="All" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All</SelectItem>
+              <SelectItem value="__all__">All</SelectItem>
               {campuses.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
             </SelectContent>
           </Select>
