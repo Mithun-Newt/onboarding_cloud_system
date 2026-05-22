@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 
 export default function ChangePasswordPage() {
-  const { data: session, update } = useSession();
+  const { data: session } = useSession();
 
   const [loading, setLoading] =
     useState(false);
@@ -99,14 +99,17 @@ export default function ChangePasswordPage() {
         "Password changed successfully"
       );
 
-      // Refresh session to get updated mustChangePassword status
-      await update();
-
-      // Sign out and redirect to login
-      await signOut({
-        redirect: true,
-        callbackUrl: "/login",
-      });
+      // Clear the session and redirect
+      try {
+        await signOut({
+          redirect: false,
+        });
+      } catch (signOutErr) {
+        console.log("SIGNOUT ERROR:", signOutErr);
+      }
+      
+      // Redirect to login
+      window.location.href = "/login";
     } catch (err) {
       console.log("FRONTEND ERROR:", err);
 

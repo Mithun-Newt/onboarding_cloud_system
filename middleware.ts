@@ -6,7 +6,13 @@ export default withAuth(
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
-    if (token?.mustChangePassword && path !== "/change-password" && path !== "/api/auth/signout") {
+    // Allow access to auth sign out and password change API
+    if (path === "/api/auth/signout" || path === "/api/staff/change-password") {
+      return NextResponse.next();
+    }
+
+    // Redirect to change-password if mustChangePassword is true
+    if (token?.mustChangePassword && path !== "/change-password") {
       return NextResponse.redirect(new URL("/change-password", req.url));
     }
 

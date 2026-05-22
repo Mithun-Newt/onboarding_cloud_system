@@ -8,106 +8,116 @@ import { RoleName, AdmissionStatus, RegistrationStatus } from "@prisma/client";
 import { generateSequenceNumber, formatAdmissionNo, getAcademicYearCode } from "@/lib/utils";
 
 export async function createAdmission(registrationId: string) {
-  const session = await requireAuth();
+  try {
+    const session = await requireAuth();
 
-  const reg = await prisma.registration.findUnique({
-    where: { id: registrationId },
-    include: { academicYear: true },
-  });
-  if (!reg) throw new Error("Registration not found");
-  if (reg.status === RegistrationStatus.ADMITTED) throw new Error("Already admitted");
-  if (reg.status === RegistrationStatus.CANCELLED) throw new Error("Registration is cancelled");
+    const reg = await prisma.registration.findUnique({
+      where: { id: registrationId },
+      include: { academicYear: true },
+    });
+    if (!reg) throw new Error("Registration not found");
+    if (reg.status === RegistrationStatus.ADMITTED) throw new Error("Already admitted");
+    if (reg.status === RegistrationStatus.CANCELLED) throw new Error("Registration is cancelled");
 
-  const student = await prisma.student.create({
-    data: {
-      fullNameEn: reg.studentName,
-      dateOfBirth: reg.dateOfBirth,
-      gender: reg.gender,
-      address1: reg.address1,
-      address2: reg.address2,
-      city: reg.city,
-      state: reg.state,
-      pinCode: reg.pinCode,
-    },
-  });
+    const student = await prisma.student.create({
+      data: {
+        fullNameEn: reg.studentName,
+        dateOfBirth: reg.dateOfBirth,
+        gender: reg.gender,
+        address1: reg.address1,
+        address2: reg.address2,
+        city: reg.city,
+        state: reg.state,
+        pinCode: reg.pinCode,
+      },
+    });
 
-  const admission = await prisma.admissionApplication.create({
-    data: {
-      registrationId,
-      academicYearId: reg.academicYearId,
-      campusId: reg.campusId,
-      gradeId: reg.gradeId,
-      studentId: student.id,
-      status: AdmissionStatus.DRAFT,
-    },
-  });
+    const admission = await prisma.admissionApplication.create({
+      data: {
+        registrationId,
+        academicYearId: reg.academicYearId,
+        campusId: reg.campusId,
+        gradeId: reg.gradeId,
+        studentId: student.id,
+        status: AdmissionStatus.DRAFT,
+      },
+    });
 
-  await prisma.registration.update({
-    where: { id: registrationId },
-    data: { status: RegistrationStatus.ADMISSION_STARTED, studentId: student.id },
-  });
+    await prisma.registration.update({
+      where: { id: registrationId },
+      data: { status: RegistrationStatus.ADMISSION_STARTED, studentId: student.id },
+    });
 
-  await prisma.admissionStatusHistory.create({
-    data: {
-      admissionId: admission.id,
-      toStatus: AdmissionStatus.DRAFT,
-      changedByUser: session.user.id,
-    },
-  });
+    await prisma.admissionStatusHistory.create({
+      data: {
+        admissionId: admission.id,
+        toStatus: AdmissionStatus.DRAFT,
+        changedByUser: session.user.id,
+      },
+    });
 
-  await createAuditLog({
-    actorUserId: session.user.id,
-    action: "CREATE",
-    entityType: "AdmissionApplication",
-    entityId: admission.id,
-    newValue: { registrationId, studentId: student.id },
-  });
+    await createAuditLog({
+      actorUserId: session.user.id,
+      action: "CREATE",
+      entityType: "AdmissionApplication",
+      entityId: admission.id,
+      newValue: { registrationId, studentId: student.id },
+    });
 
-  revalidatePath("/admissions");
-  revalidatePath(`/registrations/${registrationId}`);
-  return admission;
+    revalidatePath("/admissions");
+    revalidatePath(`/registrations/${registrationId}`);
+    return admission;
+  } catch (error) {
+    console.error("CREATE_ADMISSION_ERROR:", error);
+    throw error instanceof Error ? error : new Error("Failed to create admission");
+  }
 }
 
 export async function updateAdmissionStudent(admissionId: string, data: any) {
-  const session = await requireAuth();
-  const admission = await prisma.admissionApplication.findUnique({
-    where: { id: admissionId },
-  });
-  if (!admission) throw new Error("Admission not found");
+  try {
+    const session = await requireAuth();
+    const admission = await prisma.admissionApplication.findUnique({
+      where: { id: admissionId },
+    });
+    if (!admission) throw new Error("Admission not found");
 
-  await prisma.student.update({
-    where: { id: admission.studentId },
-    data: {
-      fullNameEn: data.fullNameEn,
-      fullNameTa: data.fullNameTa,
-      givenName: data.givenName,
-      surname: data.surname,
-      dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
-      gender: data.gender,
-      bloodGroup: data.bloodGroup,
-      religion: data.religion,
-      community: data.community,
-      category: data.category,
-      motherTongue: data.motherTongue,
-      nationality: data.nationality,
-      emisNumber: data.emisNumber,
-      aadhaarLast4: data.aadhaarLast4,
-      address1: data.address1,
-      address2: data.address2,
-      city: data.city,
-      state: data.state,
-      pinCode: data.pinCode,
-    },
-  });
+    await prisma.student.update({
+      where: { id: admission.studentId },
+      data: {
+        fullNameEn: data.fullNameEn,
+        fullNameTa: data.fullNameTa,
+        givenName: data.givenName,
+        surname: data.surname,
+        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
+        gender: data.gender,
+        bloodGroup: data.bloodGroup,
+        religion: data.religion,
+        community: data.community,
+        category: data.category,
+        motherTongue: data.motherTongue,
+        nationality: data.nationality,
+        emisNumber: data.emisNumber,
+        aadhaarLast4: data.aadhaarLast4,
+        address1: data.address1,
+        address2: data.address2,
+        city: data.city,
+        state: data.state,
+        pinCode: data.pinCode,
+      },
+    });
 
-  await createAuditLog({
-    actorUserId: session.user.id,
-    action: "UPDATE_STUDENT",
-    entityType: "AdmissionApplication",
-    entityId: admissionId,
-  });
+    await createAuditLog({
+      actorUserId: session.user.id,
+      action: "UPDATE_STUDENT",
+      entityType: "AdmissionApplication",
+      entityId: admissionId,
+    });
 
-  revalidatePath(`/admissions/${admissionId}`);
+    revalidatePath(`/admissions/${admissionId}`);
+  } catch (error) {
+    console.error("UPDATE_ADMISSION_STUDENT_ERROR:", error);
+    throw error instanceof Error ? error : new Error("Failed to update student");
+  }
 }
 
 export async function updateAdmissionFamily(admissionId: string, data: any) {
@@ -312,32 +322,37 @@ export async function getAdmissions(params: {
   page?: number;
   pageSize?: number;
 }) {
-  const page = params.page ?? 1;
-  const pageSize = params.pageSize ?? 20;
-  const skip = (page - 1) * pageSize;
+  try {
+    const page = params.page ?? 1;
+    const pageSize = params.pageSize ?? 20;
+    const skip = (page - 1) * pageSize;
 
-  const where: any = {};
-  if (params.academicYearId) where.academicYearId = params.academicYearId;
-  if (params.gradeId) where.gradeId = params.gradeId;
-  if (params.status) where.status = params.status;
-  if (params.search) {
-    where.OR = [
-      { admissionNo: { contains: params.search, mode: "insensitive" } },
-      { student: { fullNameEn: { contains: params.search, mode: "insensitive" } } },
-      { registration: { registrationNo: { contains: params.search, mode: "insensitive" } } },
-    ];
+    const where: any = {};
+    if (params.academicYearId) where.academicYearId = params.academicYearId;
+    if (params.gradeId) where.gradeId = params.gradeId;
+    if (params.status) where.status = params.status;
+    if (params.search) {
+      where.OR = [
+        { admissionNo: { contains: params.search, mode: "insensitive" } },
+        { student: { fullNameEn: { contains: params.search, mode: "insensitive" } } },
+        { registration: { registrationNo: { contains: params.search, mode: "insensitive" } } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      prisma.admissionApplication.findMany({
+        where,
+        include: { grade: true, academicYear: true, campus: true, student: { select: { fullNameEn: true, dateOfBirth: true, gender: true } }, registration: { select: { registrationNo: true } } },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: pageSize,
+      }),
+      prisma.admissionApplication.count({ where }),
+    ]);
+
+    return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  } catch (error) {
+    console.error("GET_ADMISSIONS_ERROR:", error);
+    return { items: [], total: 0, page: 1, pageSize: 20, totalPages: 0 };
   }
-
-  const [items, total] = await Promise.all([
-    prisma.admissionApplication.findMany({
-      where,
-      include: { grade: true, academicYear: true, campus: true, student: { select: { fullNameEn: true, dateOfBirth: true, gender: true } }, registration: { select: { registrationNo: true } } },
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: pageSize,
-    }),
-    prisma.admissionApplication.count({ where }),
-  ]);
-
-  return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
 }
