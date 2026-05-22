@@ -21,11 +21,18 @@ export async function uploadDocument(formData: FormData) {
   if (!ALLOWED_TYPES.includes(file.type)) throw new Error("Only PDF, JPG, JPEG, PNG files are allowed");
   if (file.size > MAX_SIZE_MB * 1024 * 1024) throw new Error(`File must be under ${MAX_SIZE_MB}MB`);
 
+  const dt =
+    (await prisma.documentType.findUnique({ where: { id: documentTypeId } })) ??
+    (await prisma.documentType.findUnique({ where: { name: documentTypeId } }));
+  if (!dt) {
+    throw new Error("Invalid document type. Create it in Settings → Document Types and select it here.");
+  }
+
   const uploadDir = path.join(process.cwd(), "storage", "uploads", studentId);
   await mkdir(uploadDir, { recursive: true });
 
   const ext = file.name.split(".").pop();
-  const safeName = `${documentTypeId}-${Date.now()}.${ext}`;
+  const safeName = `${dt.id}-${Date.now()}.${ext}`;
   const filePath = path.join(uploadDir, safeName);
   const buffer = Buffer.from(await file.arrayBuffer());
   await writeFile(filePath, buffer);
@@ -33,7 +40,7 @@ export async function uploadDocument(formData: FormData) {
   const relativePath = path.join("storage", "uploads", studentId, safeName);
 
   const existing = await prisma.studentDocument.findFirst({
-    where: { studentId, documentTypeId },
+    where: { studentId, documentTypeId: dt.id },
   });
 
   let doc;
@@ -56,7 +63,7 @@ export async function uploadDocument(formData: FormData) {
     doc = await prisma.studentDocument.create({
       data: {
         studentId,
-        documentTypeId,
+        documentTypeId: dt.id,
         status: DocumentStatus.UPLOADED,
         filePath: relativePath,
         originalFilename: file.name,
@@ -72,7 +79,7 @@ export async function uploadDocument(formData: FormData) {
     action: "UPLOAD_DOCUMENT",
     entityType: "StudentDocument",
     entityId: doc.id,
-    newValue: { documentTypeId, filename: file.name },
+    newValue: { documentTypeId: dt.id, documentTypeName: dt.name, filename: file.name },
   });
 
   revalidatePath("/documents");

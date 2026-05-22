@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { uploadDocument, updateDocumentStatus } from "@/features/documents/actions";
 import { toast } from "sonner";
 import { Upload, CheckCircle, XCircle, MinusCircle, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
   NOT_RECEIVED: { label: "Not Received", variant: "outline" },
@@ -16,7 +17,7 @@ const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
   WAIVED: { label: "Waived", variant: "secondary" },
 };
 
-export function DocumentsTab({ admission }: { admission: any }) {
+export function DocumentsTab({ admission, documentTypes }: { admission: any; documentTypes: { id: string; name: string }[] }) {
   const documents = admission.student.documents;
   const [isPending, startTransition] = useTransition();
 
@@ -99,7 +100,7 @@ export function DocumentsTab({ admission }: { admission: any }) {
 
           {admission.status === "DRAFT" && (
             <div className="pt-4 border-t">
-              <UploadForm studentId={admission.studentId} onUpload={handleUpload} />
+              <UploadForm studentId={admission.studentId} documentTypes={documentTypes} onUpload={handleUpload} />
             </div>
           )}
         </div>
@@ -108,8 +109,16 @@ export function DocumentsTab({ admission }: { admission: any }) {
   );
 }
 
-function UploadForm({ studentId, onUpload }: { studentId: string; onUpload: (dtId: string, f: File) => void }) {
-  const [dtId, setDtId] = useState("");
+function UploadForm({
+  studentId,
+  documentTypes,
+  onUpload,
+}: {
+  studentId: string;
+  documentTypes: { id: string; name: string }[];
+  onUpload: (dtId: string, f: File) => void;
+}) {
+  const [dtId, setDtId] = useState<string>(documentTypes[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -126,15 +135,20 @@ function UploadForm({ studentId, onUpload }: { studentId: string; onUpload: (dtI
 
   return (
     <div className="flex items-center gap-3">
-      <input
-        type="text"
-        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-        placeholder="Document type ID (from settings)"
-        value={dtId}
-        onChange={(e) => setDtId(e.target.value)}
-      />
+      <Select value={dtId} onValueChange={setDtId} disabled={loading || documentTypes.length === 0}>
+        <SelectTrigger className="h-9">
+          <SelectValue placeholder={documentTypes.length === 0 ? "No document types (add in settings)" : "Select document type"} />
+        </SelectTrigger>
+        <SelectContent>
+          {documentTypes.map((dt) => (
+            <SelectItem key={dt.id} value={dt.id}>
+              {dt.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <label className="cursor-pointer">
-        <Button asChild size="sm" variant="outline" disabled={loading}>
+        <Button asChild size="sm" variant="outline" disabled={loading || documentTypes.length === 0}>
           <span><Upload className="mr-1 h-4 w-4" />Upload</span>
         </Button>
         <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={handleChange} />

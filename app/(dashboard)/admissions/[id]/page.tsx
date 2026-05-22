@@ -50,6 +50,8 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
 
   if (!admission) notFound();
 
+  const documentTypes = await prisma.documentType.findMany({ where: { isActive: true }, orderBy: { name: "asc" } });
+
   const status = STATUS_BADGES[admission.status] ?? { label: admission.status, variant: "outline" };
 
   return (
@@ -107,7 +109,7 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
           <MedicalTab admission={admission} />
         </TabsContent>
         <TabsContent value="documents">
-          <DocumentsTab admission={admission} />
+          <DocumentsTab admission={admission} documentTypes={documentTypes} />
         </TabsContent>
         <TabsContent value="payments">
           <PaymentsTab admission={admission} />
