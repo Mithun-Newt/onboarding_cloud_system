@@ -8,6 +8,7 @@ import { uploadDocument, updateDocumentStatus } from "@/features/documents/actio
 import { toast } from "sonner";
 import { Upload, CheckCircle, XCircle, MinusCircle, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getRestrictionForDocumentType, DEFAULT_RESTRICTION } from "@/lib/document-restrictions";
 
 const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
   NOT_RECEIVED: { label: "Not Received", variant: "outline" },
@@ -67,9 +68,18 @@ export function DocumentsTab({ admission, documentTypes }: { admission: any; doc
               <div key={doc.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div>
                   <p className="text-sm font-medium">{doc.documentType.name}</p>
-                  {doc.originalFilename && (
+                  {doc.originalFilename && doc.filePath ? (
+                    <a
+                      href={`/api/documents/${doc.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-blue-600 hover:underline hover:text-blue-800 inline-block mt-0.5"
+                    >
+                      {doc.originalFilename}
+                    </a>
+                  ) : doc.originalFilename ? (
                     <p className="text-xs text-muted-foreground">{doc.originalFilename}</p>
-                  )}
+                  ) : null}
                   {doc.remarks && <p className="text-xs text-red-500">{doc.remarks}</p>}
                 </div>
                 <div className="flex items-center gap-2">
@@ -121,12 +131,22 @@ function UploadForm({
   const [dtId, setDtId] = useState<string>(documentTypes[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
 
+  const selectedDt = documentTypes.find((dt) => dt.id === dtId);
+  const restriction = selectedDt ? getRestrictionForDocumentType(selectedDt.name) : DEFAULT_RESTRICTION;
+
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !dtId) {
       toast.error("Select document type first");
       return;
     }
+
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!ext || !restriction.allowedExtensions.includes(`.${ext}`)) {
+      toast.error(`Invalid file type. ${restriction.description}`);
+      return;
+    }
+
     setLoading(true);
     onUpload(dtId, file);
     setLoading(false);
@@ -134,25 +154,30 @@ function UploadForm({
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <Select value={dtId} onValueChange={setDtId} disabled={loading || documentTypes.length === 0}>
-        <SelectTrigger className="h-9">
-          <SelectValue placeholder={documentTypes.length === 0 ? "No document types (add in settings)" : "Select document type"} />
-        </SelectTrigger>
-        <SelectContent>
-          {documentTypes.map((dt) => (
-            <SelectItem key={dt.id} value={dt.id}>
-              {dt.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <label className="cursor-pointer">
-        <Button asChild size="sm" variant="outline" disabled={loading || documentTypes.length === 0}>
-          <span><Upload className="mr-1 h-4 w-4" />Upload</span>
-        </Button>
-        <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={handleChange} />
-      </label>
+    <div className="space-y-2">
+      <div className="flex items-center gap-3">
+        <Select value={dtId} onValueChange={setDtId} disabled={loading || documentTypes.length === 0}>
+          <SelectTrigger className="h-9">
+            <SelectValue placeholder={documentTypes.length === 0 ? "No document types (add in settings)" : "Select document type"} />
+          </SelectTrigger>
+          <SelectContent>
+            {documentTypes.map((dt) => (
+              <SelectItem key={dt.id} value={dt.id}>
+                {dt.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <label className="cursor-pointer">
+          <Button asChild size="sm" variant="outline" disabled={loading || documentTypes.length === 0}>
+            <span><Upload className="mr-1 h-4 w-4" />Upload</span>
+          </Button>
+          <input type="file" className="hidden" accept={restriction.allowedExtensions.join(",")} onChange={handleChange} />
+        </label>
+      </div>
+      {selectedDt && (
+        <p className="text-xs text-muted-foreground pl-1">{restriction.description}</p>
+      )}
     </div>
   );
 }

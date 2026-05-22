@@ -7,8 +7,8 @@ import { revalidatePath } from "next/cache";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { DocumentStatus } from "@prisma/client";
+import { getRestrictionForDocumentType } from "@/lib/document-restrictions";
 
-const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
 const MAX_SIZE_MB = parseInt(process.env.MAX_FILE_SIZE_MB ?? "10");
 
 export async function uploadDocument(formData: FormData) {
@@ -18,7 +18,6 @@ export async function uploadDocument(formData: FormData) {
   const documentTypeId = formData.get("documentTypeId") as string;
 
   if (!file || !studentId || !documentTypeId) throw new Error("Missing required fields");
-  if (!ALLOWED_TYPES.includes(file.type)) throw new Error("Only PDF, JPG, JPEG, PNG files are allowed");
   if (file.size > MAX_SIZE_MB * 1024 * 1024) throw new Error(`File must be under ${MAX_SIZE_MB}MB`);
 
   const dt =
@@ -28,10 +27,20 @@ export async function uploadDocument(formData: FormData) {
     throw new Error("Invalid document type. Create it in Settings → Document Types and select it here.");
   }
 
+  const restriction = getRestrictionForDocumentType(dt.name);
+  const ext = file.name.split(".").pop()?.toLowerCase();
+
+  if (!ext || !restriction.allowedExtensions.includes(`.${ext}`)) {
+    throw new Error(`Invalid file extension. ${restriction.description}`);
+  }
+
+  if (!restriction.allowedMimeTypes.includes(file.type)) {
+    throw new Error(`Invalid file type. ${restriction.description}`);
+  }
+
   const uploadDir = path.join(process.cwd(), "storage", "uploads", studentId);
   await mkdir(uploadDir, { recursive: true });
 
-  const ext = file.name.split(".").pop();
   const safeName = `${dt.id}-${Date.now()}.${ext}`;
   const filePath = path.join(uploadDir, safeName);
   const buffer = Buffer.from(await file.arrayBuffer());
