@@ -37,7 +37,20 @@ export default async function PendingDocumentsPage({ searchParams }: { searchPar
             {data.map((d) => (
               <tr key={d.id} className="border-b last:border-0">
                 <td className="px-4 py-3 font-medium">{d.student.fullNameEn}</td>
-                <td className="px-4 py-3">{d.documentType.name}</td>
+                <td className="px-4 py-3">
+                  {d.status === "UPLOADED" ? (
+                    <a
+                      href={`/api/documents/${d.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-blue-600 hover:underline hover:text-blue-800"
+                    >
+                      {d.documentType.name}
+                    </a>
+                  ) : (
+                    <span>{d.documentType.name}</span>
+                  )}
+                </td>
                 <td className="px-4 py-3">{d.documentType.isRequired ? <Badge variant="destructive">Required</Badge> : <Badge variant="outline">Optional</Badge>}</td>
                 <td className="px-4 py-3"><Badge variant={d.status === "UPLOADED" ? "info" : "warning"}>{d.status.replace("_", " ")}</Badge></td>
               </tr>

@@ -266,9 +266,9 @@ export async function previousSchoolReport(filter: ReportFilter) {
 
 export async function vaccinationPendingReport(filter: ReportFilter) {
   try {
-    return await prisma.studentMedicalProfile.findMany({
+    return await prisma.studentVaccination.findMany({
       where: {
-        vaccinationStatus: { not: "COMPLETE" },
+        status: { not: "DONE" },
         student: filter.academicYearId
           ? { admissions: { some: { academicYearId: filter.academicYearId } } }
           : {},
@@ -283,6 +283,7 @@ export async function vaccinationPendingReport(filter: ReportFilter) {
             },
           },
         },
+        vaccine: true,
       },
       orderBy: { createdAt: "desc" },
     });
