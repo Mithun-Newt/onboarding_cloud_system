@@ -8,6 +8,22 @@ import { registrationSchema } from "@/lib/validations/registration";
 import { generateSequenceNumber, formatRegistrationNo, getAcademicYearCode } from "@/lib/utils";
 import { RegistrationStatus } from "@prisma/client";
 
+function getEligibleGradeName(dob: Date, startYear: number): string | null {
+  const targetDate = new Date(startYear, 2, 31); // March 31st
+  let age = targetDate.getFullYear() - dob.getFullYear();
+  const m = targetDate.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
+    age--;
+  }
+
+  if (age === 3) return "Pre-KG";
+  if (age === 4) return "LKG";
+  if (age === 5) return "UKG";
+  if (age === 6) return "Grade 1";
+  if (age === 7) return "Grade 2";
+  return null;
+}
+
 export async function createRegistration(formData: unknown) {
   try {
     const session = await requireAuth();
@@ -15,6 +31,26 @@ export async function createRegistration(formData: unknown) {
 
     const academicYear = await prisma.academicYear.findUnique({ where: { id: data.academicYearId } });
     if (!academicYear) throw new Error("Academic year not found");
+
+    // Validate DOB and Grade mapping
+    const dob = new Date(data.dateOfBirth);
+    const eligibleGradeName = getEligibleGradeName(dob, academicYear.startYear);
+    if (!eligibleGradeName) {
+      const targetDate = new Date(academicYear.startYear, 2, 31);
+      let age = targetDate.getFullYear() - dob.getFullYear();
+      const m = targetDate.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
+        age--;
+      }
+      throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of March 31, ${academicYear.startYear}.`);
+    }
+
+    const selectedGrade = await prisma.grade.findUnique({ where: { id: data.gradeId } });
+    if (!selectedGrade) throw new Error("Selected grade not found");
+
+    if (selectedGrade.name !== eligibleGradeName) {
+      throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
+    }
 
     const yearCode = getAcademicYearCode(academicYear.label);
     const seq = await generateSequenceNumber("REGISTRATION", yearCode);
@@ -70,6 +106,29 @@ export async function updateRegistration(id: string, formData: unknown) {
 
     const old = await prisma.registration.findUnique({ where: { id } });
     if (!old) throw new Error("Registration not found");
+
+    const academicYear = await prisma.academicYear.findUnique({ where: { id: data.academicYearId } });
+    if (!academicYear) throw new Error("Academic year not found");
+
+    // Validate DOB and Grade mapping
+    const dob = new Date(data.dateOfBirth);
+    const eligibleGradeName = getEligibleGradeName(dob, academicYear.startYear);
+    if (!eligibleGradeName) {
+      const targetDate = new Date(academicYear.startYear, 2, 31);
+      let age = targetDate.getFullYear() - dob.getFullYear();
+      const m = targetDate.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
+        age--;
+      }
+      throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of March 31, ${academicYear.startYear}.`);
+    }
+
+    const selectedGrade = await prisma.grade.findUnique({ where: { id: data.gradeId } });
+    if (!selectedGrade) throw new Error("Selected grade not found");
+
+    if (selectedGrade.name !== eligibleGradeName) {
+      throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
+    }
 
     const registration = await prisma.registration.update({
       where: { id },

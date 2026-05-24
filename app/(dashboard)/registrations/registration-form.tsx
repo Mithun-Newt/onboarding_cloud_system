@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,6 +38,7 @@ export function RegistrationForm({
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [ageError, setAgeError] = useState<string | null>(null);
 
   const {
     register,
@@ -51,8 +52,90 @@ export function RegistrationForm({
   });
 
   const specialSupport = watch("specialSupport");
+  const dobValue = watch("dateOfBirth");
+  const academicYearIdValue = watch("academicYearId");
+
+  useEffect(() => {
+    if (!dobValue || !academicYearIdValue) {
+      setAgeError(null);
+      return;
+    }
+
+    const selectedYear = academicYears.find((y) => y.id === academicYearIdValue);
+    if (!selectedYear) {
+      setAgeError(null);
+      return;
+    }
+
+    const dob = new Date(dobValue);
+    if (isNaN(dob.getTime())) {
+      setAgeError(null);
+      return;
+    }
+
+    const startYear = selectedYear.startYear;
+    const targetDate = new Date(startYear, 2, 31); // March 31st
+    let age = targetDate.getFullYear() - dob.getFullYear();
+    const m = targetDate.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
+      age--;
+    }
+
+    if (age < 3 || age >= 8) {
+      setAgeError(`Student age of ${age} years is not eligible for admission. Age must be between 3 and 8 years as of March 31, ${startYear}.`);
+      setValue("gradeId", "");
+    } else {
+      setAgeError(null);
+      let matchingGradeName = "";
+      if (age === 3) matchingGradeName = "Pre-KG";
+      else if (age === 4) matchingGradeName = "LKG";
+      else if (age === 5) matchingGradeName = "UKG";
+      else if (age === 6) matchingGradeName = "Grade 1";
+      else if (age === 7) matchingGradeName = "Grade 2";
+
+      const matchingGrade = grades.find((g) => g.name === matchingGradeName);
+      if (matchingGrade) {
+        setValue("gradeId", matchingGrade.id);
+      }
+    }
+  }, [dobValue, academicYearIdValue, academicYears, grades, setValue]);
+
+  const filteredGrades = (() => {
+    if (!dobValue || !academicYearIdValue || ageError) {
+      if (ageError) return [];
+      return grades;
+    }
+
+    const selectedYear = academicYears.find((y) => y.id === academicYearIdValue);
+    if (!selectedYear) return grades;
+
+    const dob = new Date(dobValue);
+    if (isNaN(dob.getTime())) return grades;
+
+    const startYear = selectedYear.startYear;
+    const targetDate = new Date(startYear, 2, 31);
+    let age = targetDate.getFullYear() - dob.getFullYear();
+    const m = targetDate.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
+      age--;
+    }
+
+    let matchingGradeName = "";
+    if (age === 3) matchingGradeName = "Pre-KG";
+    else if (age === 4) matchingGradeName = "LKG";
+    else if (age === 5) matchingGradeName = "UKG";
+    else if (age === 6) matchingGradeName = "Grade 1";
+    else if (age === 7) matchingGradeName = "Grade 2";
+
+    if (!matchingGradeName) return [];
+    return grades.filter((g) => g.name === matchingGradeName);
+  })();
 
   async function onSubmit(data: RegistrationInput) {
+    if (ageError) {
+      toast.error(ageError);
+      return;
+    }
     setLoading(true);
     try {
       if (registrationId) {
@@ -106,7 +189,7 @@ export function RegistrationForm({
             <Select value={watch("gradeId")} onValueChange={(v) => setValue("gradeId", v)}>
               <SelectTrigger><SelectValue placeholder="Select grade" /></SelectTrigger>
               <SelectContent>
-                {grades.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
+                {filteredGrades.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
               </SelectContent>
             </Select>
             {errors.gradeId && <p className="text-xs text-red-500">{errors.gradeId.message}</p>}
@@ -128,6 +211,7 @@ export function RegistrationForm({
             <Label>Date of Birth *</Label>
             <Input type="date" {...register("dateOfBirth")} />
             {errors.dateOfBirth && <p className="text-xs text-red-500">{errors.dateOfBirth.message}</p>}
+            {ageError && <p className="text-xs text-red-500 font-medium">{ageError}</p>}
           </div>
 
           <div className="space-y-2">
