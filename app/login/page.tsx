@@ -3,12 +3,13 @@
 import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BookOpen, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import Image from "next/image";
 
 function LoginForm() {
   const router = useRouter();
@@ -78,16 +79,25 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
       <div className="w-full max-w-md px-4">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600">
-            <BookOpen className="h-7 w-7 text-white" />
+          {/* School Logo */}
+          <div className="mb-6 flex items-center justify-center">
+            <img
+              src="/logo/appu-arivaalayem-logo.png"
+              alt={process.env.NEXT_PUBLIC_SCHOOL_NAME}
+              className="h-24 w-24 object-contain drop-shadow-lg"
+            />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {process.env.NEXT_PUBLIC_SCHOOL_NAME || "Junior School"}
+          
+          {/* School Name */}
+          <h1 className="text-3xl font-bold text-green-700">
+            {process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}
           </h1>
-          <p className="text-sm text-gray-500">Admissions Management System</p>
+          
+          {/* Subtitle */}
+          <p className="mt-2 text-sm text-gray-600">Admissions Management System</p>
         </div>
 
         <Card>

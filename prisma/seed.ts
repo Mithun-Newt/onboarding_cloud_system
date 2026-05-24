@@ -12,7 +12,7 @@ async function main() {
     update: {},
     create: {
       id: "school-default",
-      name: process.env.NEXT_PUBLIC_SCHOOL_NAME || "Junior School",
+      name: process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem",
       address: "School Address, City - 600001",
       phone: "+91 00000 00000",
       email: "admin@school.edu.in",

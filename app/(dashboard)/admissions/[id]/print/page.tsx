@@ -26,7 +26,7 @@ export default async function PrintAdmissionPage({ params }: { params: { id: str
 
       <div className="rounded-lg border bg-white p-8">
         <div className="mb-6 border-b pb-4 text-center">
-          <h1 className="text-2xl font-bold">{process.env.NEXT_PUBLIC_SCHOOL_NAME || "Junior School"}</h1>
+          <h1 className="text-2xl font-bold">{process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}</h1>
           <p className="text-lg font-semibold text-blue-700 mt-1">Admission Summary</p>
           <p className="text-sm text-gray-500">{admission.campus.name} · {admission.academicYear.label}</p>
         </div>

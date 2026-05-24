@@ -10,7 +10,6 @@ import {
   CreditCard,
   BarChart3,
   Settings,
-  BookOpen,
   FileCheck,
   ScrollText,
 } from "lucide-react";
@@ -31,14 +30,18 @@ export function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r bg-white">
-      {/* Logo */}
-      <div className="flex h-16 items-center border-b px-6">
-        <BookOpen className="mr-2 h-6 w-6 text-blue-600" />
-        <div>
-          <p className="text-sm font-bold leading-tight text-gray-900">
-            {process.env.NEXT_PUBLIC_SCHOOL_NAME || "Junior School"}
+      {/* Logo & School Name */}
+      <div className="flex h-20 items-center border-b px-4 bg-gradient-to-r from-green-50 to-blue-50">
+        <img
+          src="/logo/appu-arivaalayem-logo.png"
+          alt={process.env.NEXT_PUBLIC_SCHOOL_NAME}
+          className="mr-3 h-12 w-12 object-contain"
+        />
+        <div className="flex-1">
+          <p className="text-sm font-bold leading-tight text-green-700">
+            {process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}
           </p>
-          <p className="text-xs text-gray-500">Admissions System</p>
+          <p className="text-xs text-gray-600">Admissions System</p>
         </div>
       </div>
 
@@ -53,7 +56,7 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 active
-                  ? "bg-blue-50 text-blue-700"
+                  ? "bg-green-50 text-green-700"
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               )}
             >
