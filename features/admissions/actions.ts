@@ -20,6 +20,12 @@ export async function createAdmission(registrationId: string) {
     if (reg.status === RegistrationStatus.ADMITTED) throw new Error("Already admitted");
     if (reg.status === RegistrationStatus.CANCELLED) throw new Error("Registration is cancelled");
 
+    // Check if an admission already exists for this registration (prevent duplicates)
+    const existingAdmission = await prisma.admissionApplication.findFirst({
+      where: { registrationId },
+    });
+    if (existingAdmission) throw new Error("Admission already exists for this registration");
+
     const student = await prisma.student.create({
       data: {
         fullNameEn: reg.studentName,

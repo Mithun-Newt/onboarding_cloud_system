@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createAdmission } from "@/features/admissions/actions";
 import { toast } from "sonner";
@@ -11,12 +11,17 @@ function NewAdmissionInner() {
   const searchParams = useSearchParams();
   const registrationId = searchParams.get("registrationId");
   const [error, setError] = useState<string | null>(null);
+  const attemptedRef = useRef(false);
 
   useEffect(() => {
     if (!registrationId) {
       setError("No registration ID provided. Please start admission from a Registration record.");
       return;
     }
+
+    // Prevent duplicate calls in React 18 StrictMode
+    if (attemptedRef.current) return;
+    attemptedRef.current = true;
 
     createAdmission(registrationId)
       .then((admission) => {
