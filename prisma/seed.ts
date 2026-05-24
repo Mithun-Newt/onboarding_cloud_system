@@ -26,7 +26,7 @@ async function main() {
     create: {
       id: "campus-main",
       schoolId: school.id,
-      name: "Main Campus",
+      name: "JSC",
       address: "Main Campus Address",
     },
   });

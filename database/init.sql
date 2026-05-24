@@ -612,8 +612,8 @@ GROUP BY es.name;
 
 DO $$
 DECLARE
-    v_school_id       TEXT := 'seed-school-main';
-    v_campus_id       TEXT := 'seed-campus-main';
+    v_school_id       TEXT := 'school-default';
+    v_campus_id       TEXT := 'campus-main';
     v_ay_id           TEXT := 'seed-ay-2026-27';
     v_grade_prekg     TEXT := 'seed-grade-prekg';
     v_grade_lkg       TEXT := 'seed-grade-lkg';
@@ -632,12 +632,12 @@ BEGIN
 
     -- School
     INSERT INTO schools (id, name, address, phone, email)
-    VALUES (v_school_id, 'Junior School', NULL, NULL, NULL)
+    VALUES (v_school_id, 'Appu Arivaalayem', NULL, NULL, NULL)
     ON CONFLICT (id) DO NOTHING;
 
     -- Campus
     INSERT INTO campuses (id, "schoolId", name, "isActive")
-    VALUES (v_campus_id, v_school_id, 'Main Campus', TRUE)
+    VALUES (v_campus_id, v_school_id, 'JSC', TRUE)
     ON CONFLICT (id) DO NOTHING;
 
     -- Academic Year 2026-27
@@ -736,7 +736,7 @@ BEGIN
 
     -- App Settings
     INSERT INTO app_settings (key, value, label) VALUES
-        ('school_name',           'Junior School', 'School Display Name'),
+        ('school_name',           'Appu Arivaalayem', 'School Display Name'),
         ('current_academic_year', '2026-27',       'Current Academic Year Label'),
         ('max_file_size_mb',      '5',             'Max Upload File Size (MB)')
     ON CONFLICT (key) DO NOTHING;
