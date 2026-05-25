@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pencil, FileText, ArrowRight, ArrowLeft } from "lucide-react";
 import { CancelRegistrationButton } from "./cancel-button";
 import { StartAdmissionButton } from "./start-admission-button";
+import { getSession } from "@/lib/auth";
 
 const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
   REGISTERED: { label: "Registered", variant: "info" },
@@ -17,22 +18,28 @@ const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
 };
 
 export default async function RegistrationDetailPage({ params }: { params: { id: string } }) {
-  const reg = await prisma.registration.findUnique({
-    where: { id: params.id },
-    include: {
-      grade: true,
-      academicYear: true,
-      campus: true,
-      enquirySource: true,
-      admissions: {
-        select: { id: true, admissionNo: true, status: true },
-        orderBy: { createdAt: "desc" },
-        take: 1,
+  const [session, reg] = await Promise.all([
+    getSession(),
+    prisma.registration.findUnique({
+      where: { id: params.id },
+      include: {
+        grade: true,
+        academicYear: true,
+        campus: true,
+        enquirySource: true,
+        admissions: {
+          select: { id: true, admissionNo: true, status: true },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
       },
-    },
-  });
+    }),
+  ]);
 
   if (!reg) notFound();
+
+  const roles = (session?.user as any)?.roles || [];
+  const isWriteAllowed = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC") || roles.includes("ADMISSION_STAFF");
 
   const status = STATUS_BADGES[reg.status] ?? { label: reg.status, variant: "outline" };
   const latestAdmission = reg.admissions[0];
@@ -74,7 +81,7 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
           <Button size="sm" variant="outline" asChild>
             <Link href={`/registrations/${reg.id}/print`}><FileText className="mr-1 h-4 w-4" />Print</Link>
           </Button>
-          {reg.status === "REGISTERED" && (
+          {reg.status === "REGISTERED" && isWriteAllowed && (
             <>
               <Button size="sm" variant="outline" asChild>
                 <Link href={`/registrations/${reg.id}/edit`}><Pencil className="mr-1 h-4 w-4" />Edit</Link>

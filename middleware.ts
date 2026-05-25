@@ -16,6 +16,59 @@ export default withAuth(
       return NextResponse.redirect(new URL("/change-password", req.url));
     }
 
+    const roles = (token?.roles ?? []) as string[];
+    const isSysAdminOrTic = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC");
+    const isTransportStaff = roles.includes("TRANSPORT_STAFF");
+    const isCashier = roles.includes("CASHIER");
+    const isAdmissionStaff = roles.includes("ADMISSION_STAFF");
+    const isReadOnly = roles.includes("READ_ONLY_MANAGEMENT");
+
+    if (isSysAdminOrTic) {
+      return NextResponse.next();
+    }
+
+    if (isTransportStaff) {
+      // TRANSPORT_STAFF can only access admissions list or detail page, and change-password
+      if (!path.startsWith("/admissions") && path !== "/change-password") {
+        return NextResponse.redirect(new URL("/admissions", req.url));
+      }
+      return NextResponse.next();
+    }
+
+    if (isCashier) {
+      // CASHIER cannot see documents, reports, settings, registrations/new, registrations/[id]/edit
+      if (
+        path.startsWith("/documents") ||
+        path.startsWith("/reports") ||
+        path.startsWith("/settings") ||
+        path === "/registrations/new" ||
+        (path.startsWith("/registrations/") && path.endsWith("/edit"))
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
+      return NextResponse.next();
+    }
+
+    if (isReadOnly) {
+      // READ_ONLY_MANAGEMENT cannot see settings, registrations/new, registrations/[id]/edit
+      if (
+        path.startsWith("/settings") ||
+        path === "/registrations/new" ||
+        (path.startsWith("/registrations/") && path.endsWith("/edit"))
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
+      return NextResponse.next();
+    }
+
+    if (isAdmissionStaff) {
+      // ADMISSION_STAFF cannot see settings
+      if (path.startsWith("/settings")) {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
+      return NextResponse.next();
+    }
+
     return NextResponse.next();
   },
   {

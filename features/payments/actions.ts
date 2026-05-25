@@ -1,11 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuth, requireRole } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { generateSequenceNumber, formatReceiptNo, getAcademicYearCode } from "@/lib/utils";
-import { PaymentMode, PaymentStatus } from "@prisma/client";
+import { PaymentMode, PaymentStatus, RoleName } from "@prisma/client";
 
 interface RecordPaymentInput {
   feeType: string;
@@ -14,7 +14,12 @@ interface RecordPaymentInput {
 }
 
 export async function recordPayment(admissionId: string, data: RecordPaymentInput) {
-  const session = await requireAuth();
+  const session = await requireRole([
+    RoleName.SYSTEM_ADMIN,
+    RoleName.TIC,
+    RoleName.ADMISSION_STAFF,
+    RoleName.CASHIER,
+  ]);
 
   const admission = await prisma.admissionApplication.findUnique({
     where: { id: admissionId },
@@ -56,7 +61,12 @@ interface CollectPaymentInput {
 }
 
 export async function collectPayment(paymentId: string, data: CollectPaymentInput) {
-  const session = await requireAuth();
+  const session = await requireRole([
+    RoleName.SYSTEM_ADMIN,
+    RoleName.TIC,
+    RoleName.ADMISSION_STAFF,
+    RoleName.CASHIER,
+  ]);
 
   if (data.paymentMode === "WAIVER" && !data.waiverReason) {
     throw new Error("Waiver reason is required");
@@ -108,7 +118,12 @@ export async function collectPayment(paymentId: string, data: CollectPaymentInpu
 }
 
 export async function deletePendingPayment(paymentId: string) {
-  const session = await requireAuth();
+  const session = await requireRole([
+    RoleName.SYSTEM_ADMIN,
+    RoleName.TIC,
+    RoleName.ADMISSION_STAFF,
+    RoleName.CASHIER,
+  ]);
 
   const payment = await prisma.payment.findUnique({
     where: { id: paymentId },

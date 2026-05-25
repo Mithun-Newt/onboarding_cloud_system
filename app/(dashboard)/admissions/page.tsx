@@ -4,9 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, Bus } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination-nav";
 import { AdmissionFilters } from "./admission-filters";
+import { getSession } from "@/lib/auth";
+import { TransportFilters } from "./transport-filters";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +24,121 @@ interface SearchParams {
   status?: string;
   search?: string;
   page?: string;
+  routeId?: string;
 }
 
 export default async function AdmissionsPage({ searchParams }: { searchParams: SearchParams }) {
+  const session = await getSession();
+  const roles = (session?.user as any)?.roles || [];
+  const isTransportStaff = roles.includes("TRANSPORT_STAFF");
+
+  if (isTransportStaff) {
+    const [transportStudents, routes] = await Promise.all([
+      prisma.transportRequest.findMany({
+        where: {
+          required: true,
+          admission: {
+            status: "CONFIRMED",
+          },
+        },
+        include: {
+          admission: {
+            include: {
+              student: true,
+              grade: true,
+              campus: true,
+            },
+          },
+          route: true,
+          stop: true,
+        },
+        orderBy: {
+          admission: {
+            student: {
+              fullNameEn: "asc",
+            },
+          },
+        },
+      }),
+      prisma.busRoute.findMany({ where: { isActive: true }, orderBy: { routeNo: "asc" } }),
+    ]);
+
+    // Apply in-memory filters
+    const search = searchParams.search?.toLowerCase() || "";
+    const routeId = searchParams.routeId || "";
+
+    const filteredTransport = transportStudents.filter((t) => {
+      if (search && !t.admission.student.fullNameEn.toLowerCase().includes(search)) {
+        return false;
+      }
+      if (routeId && t.routeId !== routeId) {
+        return false;
+      }
+      return true;
+    });
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Bus className="h-6 w-6 text-primary" />
+              Transport Coordinator View
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {filteredTransport.length} student(s) confirmed for bus transport
+            </p>
+          </div>
+        </div>
+
+        <TransportFilters routes={routes} />
+
+        <div className="rounded-lg border bg-white overflow-x-auto text-sm">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b text-left text-xs text-muted-foreground">
+                <th className="px-4 py-3 font-medium">Student Name</th>
+                <th className="px-4 py-3 font-medium">Grade</th>
+                <th className="px-4 py-3 font-medium">Campus</th>
+                <th className="px-4 py-3 font-medium">Bus Route</th>
+                <th className="px-4 py-3 font-medium">Bus Stop</th>
+                <th className="px-4 py-3 font-medium">Timings (Pickup / Drop)</th>
+                <th className="px-4 py-3 font-medium">Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTransport.map((t) => (
+                <tr key={t.id} className="border-b last:border-0">
+                  <td className="px-4 py-3 font-medium">{t.admission.student.fullNameEn}</td>
+                  <td className="px-4 py-3">{t.admission.grade.name}</td>
+                  <td className="px-4 py-3">{t.admission.campus.name}</td>
+                  <td className="px-4 py-3 font-medium text-blue-700">
+                    {t.route ? `${t.route.routeNo} - ${t.route.name}` : "-"}
+                  </td>
+                  <td className="px-4 py-3">{t.stop?.stopName || "-"}</td>
+                  <td className="px-4 py-3 text-xs">
+                    {t.stop ? `${t.stop.pickupTime} / ${t.stop.dropTime}` : "-"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground italic text-xs">
+                    {t.remarks || "-"}
+                  </td>
+                </tr>
+              ))}
+              {filteredTransport.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                    No matching student transport records found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback to standard admissions manager view
   const page = parseInt(searchParams.page ?? "1");
 
   const [result, academicYears, grades] = await Promise.all([

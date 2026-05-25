@@ -10,7 +10,7 @@ import { getConfirmationFeeForGrade } from "@/lib/fee-constants";
 
 export async function createAdmission(registrationId: string) {
   try {
-    const session = await requireAuth();
+    const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
 
     const reg = await prisma.registration.findUnique({
       where: { id: registrationId },
@@ -94,7 +94,7 @@ export async function createAdmission(registrationId: string) {
 
 export async function updateAdmissionStudent(admissionId: string, data: any) {
   try {
-    const session = await requireAuth();
+    const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
     const admission = await prisma.admissionApplication.findUnique({
       where: { id: admissionId },
     });
@@ -140,7 +140,7 @@ export async function updateAdmissionStudent(admissionId: string, data: any) {
 }
 
 export async function updateAdmissionFamily(admissionId: string, data: any) {
-  const session = await requireAuth();
+  const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
   const admission = await prisma.admissionApplication.findUnique({
     where: { id: admissionId },
     include: { student: { include: { family: { include: { guardians: true } } } } },
@@ -204,7 +204,7 @@ export async function updateAdmissionFamily(admissionId: string, data: any) {
 }
 
 export async function updateAdmissionPrevSchool(admissionId: string, data: any) {
-  await requireAuth();
+  await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
   await prisma.previousSchoolDetail.upsert({
     where: { admissionId },
     update: data,
@@ -214,7 +214,7 @@ export async function updateAdmissionPrevSchool(admissionId: string, data: any) 
 }
 
 export async function updateAdmissionMedical(admissionId: string, data: any) {
-  const session = await requireAuth();
+  const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
   const admission = await prisma.admissionApplication.findUnique({ where: { id: admissionId } });
   if (!admission) throw new Error("Not found");
 
@@ -230,7 +230,7 @@ export async function updateAdmissionMedical(admissionId: string, data: any) {
 export async function confirmAdmission(admissionId: string) {
   const session = await requireRole([
     RoleName.SYSTEM_ADMIN,
-    RoleName.VICE_PRINCIPAL,
+    RoleName.TIC,
     RoleName.ADMISSION_STAFF,
   ]);
 
@@ -302,7 +302,7 @@ export async function confirmAdmission(admissionId: string) {
 }
 
 export async function cancelAdmission(admissionId: string, reason: string) {
-  const session = await requireAuth();
+  const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
   const admission = await prisma.admissionApplication.findUnique({ where: { id: admissionId } });
   if (!admission) throw new Error("Not found");
   if (admission.status === AdmissionStatus.CANCELLED) throw new Error("Already cancelled");
@@ -388,7 +388,7 @@ export async function saveTransportRequest(
   }
 ) {
   try {
-    const session = await requireAuth();
+    const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
 
     const admission = await prisma.admissionApplication.findUnique({
       where: { id: admissionId },

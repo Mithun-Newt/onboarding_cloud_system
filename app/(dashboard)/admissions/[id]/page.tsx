@@ -16,6 +16,7 @@ import { PaymentsTab } from "./tabs/payments-tab";
 import { TransportTab } from "./tabs/transport-tab";
 import { ConfirmAdmissionButton } from "./confirm-button";
 import { CancelAdmissionButton } from "./cancel-button";
+import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -51,12 +52,56 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
 
   if (!admission) notFound();
 
+  const session = await getSession();
+  const roles = (session?.user as any)?.roles || [];
+  const isSysAdminOrTic = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC");
+  const isTransportStaff = roles.includes("TRANSPORT_STAFF");
+  const isCashier = roles.includes("CASHIER");
+  const isWriteAllowed = isSysAdminOrTic || roles.includes("ADMISSION_STAFF");
+
   const [documentTypes, busRoutes] = await Promise.all([
     prisma.documentType.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
     prisma.busRoute.findMany({ where: { isActive: true }, include: { busStops: true }, orderBy: { routeNo: "asc" } }),
   ]);
 
   const status = STATUS_BADGES[admission.status] ?? { label: admission.status, variant: "outline" };
+
+  const allTabs = [
+    { value: "student", label: "Student", content: <StudentInfoTab admission={admission} /> },
+    { value: "parents", label: "Parents", content: <ParentInfoTab admission={admission} /> },
+    { value: "school", label: "Prev School", content: <PrevSchoolTab admission={admission} /> },
+    { value: "medical", label: "Medical", content: <MedicalTab admission={admission} /> },
+    { value: "documents", label: "Documents", content: <DocumentsTab admission={admission} documentTypes={documentTypes} /> },
+    { value: "transport", label: "Transport", content: <TransportTab admission={admission} busRoutes={busRoutes} /> },
+    { value: "payments", label: "Fees & Payments", content: <PaymentsTab admission={admission} /> },
+    { value: "history", label: "History", content: (
+      <Card>
+        <CardHeader><CardTitle className="text-base">Status History</CardTitle></CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {admission.statusHistory.map((h) => (
+              <div key={h.id} className="flex items-center gap-3 text-sm">
+                <div className="text-muted-foreground text-xs w-32 shrink-0">{formatDate(h.changedAt)}</div>
+                <div>
+                  {h.fromStatus && <span className="text-muted-foreground">{h.fromStatus} →{" "}</span>}
+                  <span className="font-medium">{h.toStatus}</span>
+                  {h.reason && <span className="text-muted-foreground ml-2">({h.reason})</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    ) },
+  ];
+
+  const enabledTabs = allTabs.filter((t) => {
+    if (isTransportStaff) return t.value === "transport";
+    if (isCashier) return t.value !== "documents";
+    return true;
+  });
+
+  const defaultTab = isTransportStaff ? "transport" : "student";
 
   return (
     <div className="space-y-4">
@@ -76,7 +121,7 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
         </div>
         <Badge variant={status.variant} className="ml-2">{status.label}</Badge>
         <div className="ml-auto flex gap-2">
-          {admission.status === "DRAFT" && (
+          {admission.status === "DRAFT" && isWriteAllowed && (
             <>
               <CancelAdmissionButton admissionId={admission.id} />
               <ConfirmAdmissionButton admissionId={admission.id} />
@@ -89,58 +134,20 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="student">
+      <Tabs defaultValue={defaultTab}>
         <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="student">Student</TabsTrigger>
-          <TabsTrigger value="parents">Parents</TabsTrigger>
-          <TabsTrigger value="school">Prev School</TabsTrigger>
-          <TabsTrigger value="medical">Medical</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="transport">Transport</TabsTrigger>
-          <TabsTrigger value="payments">Fees & Payments</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+          {enabledTabs.map((t) => (
+            <TabsTrigger key={t.value} value={t.value}>
+              {t.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="student">
-          <StudentInfoTab admission={admission} />
-        </TabsContent>
-        <TabsContent value="parents">
-          <ParentInfoTab admission={admission} />
-        </TabsContent>
-        <TabsContent value="school">
-          <PrevSchoolTab admission={admission} />
-        </TabsContent>
-        <TabsContent value="medical">
-          <MedicalTab admission={admission} />
-        </TabsContent>
-        <TabsContent value="documents">
-          <DocumentsTab admission={admission} documentTypes={documentTypes} />
-        </TabsContent>
-        <TabsContent value="transport">
-          <TransportTab admission={admission} busRoutes={busRoutes} />
-        </TabsContent>
-        <TabsContent value="payments">
-          <PaymentsTab admission={admission} />
-        </TabsContent>
-        <TabsContent value="history">
-          <Card>
-            <CardHeader><CardTitle className="text-base">Status History</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {admission.statusHistory.map((h) => (
-                  <div key={h.id} className="flex items-center gap-3 text-sm">
-                    <div className="text-muted-foreground text-xs w-32 shrink-0">{formatDate(h.changedAt)}</div>
-                    <div>
-                      {h.fromStatus && <span className="text-muted-foreground">{h.fromStatus} →{" "}</span>}
-                      <span className="font-medium">{h.toStatus}</span>
-                      {h.reason && <span className="text-muted-foreground ml-2">({h.reason})</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {enabledTabs.map((t) => (
+          <TabsContent key={t.value} value={t.value}>
+            {t.content}
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );

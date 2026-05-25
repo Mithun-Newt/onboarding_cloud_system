@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Eye, Pencil, FileText } from "lucide-react";
 import { RegistrationFilters } from "./registration-filters";
 import { Pagination } from "@/components/ui/pagination-nav";
+import { getSession } from "@/lib/auth";
 
 const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
   REGISTERED: { label: "Registered", variant: "info" },
@@ -28,7 +29,8 @@ interface SearchParams {
 export default async function RegistrationsPage({ searchParams }: { searchParams: SearchParams }) {
   const page = parseInt(searchParams.page ?? "1");
 
-  const [result, academicYears, grades] = await Promise.all([
+  const [session, result, academicYears, grades] = await Promise.all([
+    getSession(),
     getRegistrations({
       academicYearId: searchParams.academicYearId,
       gradeId: searchParams.gradeId,
@@ -40,6 +42,9 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
     prisma.grade.findMany({ orderBy: { sortOrder: "asc" } }),
   ]);
 
+  const roles = (session?.user as any)?.roles || [];
+  const isWriteAllowed = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC") || roles.includes("ADMISSION_STAFF");
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -47,9 +52,11 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
           <h2 className="text-xl font-bold">Registrations</h2>
           <p className="text-sm text-muted-foreground">{result.total} total records</p>
         </div>
-        <Button asChild>
-          <Link href="/registrations/new"><Plus className="mr-1 h-4 w-4" />New Registration</Link>
-        </Button>
+        {isWriteAllowed && (
+          <Button asChild>
+            <Link href="/registrations/new"><Plus className="mr-1 h-4 w-4" />New Registration</Link>
+          </Button>
+        )}
       </div>
 
       <RegistrationFilters academicYears={academicYears} grades={grades} />
@@ -88,7 +95,7 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
                         <Button size="sm" variant="ghost" asChild>
                           <Link href={`/registrations/${r.id}`}><Eye className="h-4 w-4" /></Link>
                         </Button>
-                        {r.status === "REGISTERED" && (
+                        {r.status === "REGISTERED" && isWriteAllowed && (
                           <Button size="sm" variant="ghost" asChild>
                             <Link href={`/registrations/${r.id}/edit`}><Pencil className="h-4 w-4" /></Link>
                           </Button>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -27,6 +28,36 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+
+  const roles = (session?.user as any)?.roles || [];
+  const isSysAdminOrTic = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC");
+  const isTransportStaff = roles.includes("TRANSPORT_STAFF");
+  const isCashier = roles.includes("CASHIER");
+
+  const filteredItems = navItems.filter((item) => {
+    // If not logged in/loading, show basic navigation (to avoid layout shift)
+    if (status === "loading" || !session) {
+      return item.href !== "/settings";
+    }
+
+    if (isSysAdminOrTic) return true;
+
+    if (isTransportStaff) {
+      return item.href === "/admissions";
+    }
+
+    if (isCashier) {
+      return ["/dashboard", "/registrations", "/admissions", "/payments"].includes(item.href);
+    }
+
+    // ADMISSION_STAFF and READ_ONLY_MANAGEMENT see everything except settings
+    if (item.href === "/settings") {
+      return false;
+    }
+
+    return true;
+  });
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r bg-white">
@@ -47,7 +78,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {filteredItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
             <Link

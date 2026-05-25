@@ -14,11 +14,18 @@ import { toast } from "sonner";
 import { Loader2, Pencil, Check } from "lucide-react";
 import { format } from "date-fns";
 
+import { useSession } from "next-auth/react";
+
 interface Props {
   admission: any;
 }
 
 export function StudentInfoTab({ admission }: Props) {
+  const { data: session } = useSession();
+  const roles = (session?.user as any)?.roles || [];
+  const isSysAdminOrTic = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC");
+  const isWriteAllowed = isSysAdminOrTic || roles.includes("ADMISSION_STAFF");
+
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const student = admission.student;
@@ -64,7 +71,7 @@ export function StudentInfoTab({ admission }: Props) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base">Student Information</CardTitle>
-        {admission.status === "DRAFT" && (
+        {admission.status === "DRAFT" && isWriteAllowed && (
           <Button size="sm" variant="outline" onClick={() => setEditing(!editing)}>
             {editing ? <Check className="mr-1 h-4 w-4" /> : <Pencil className="mr-1 h-4 w-4" />}
             {editing ? "Cancel" : "Edit"}

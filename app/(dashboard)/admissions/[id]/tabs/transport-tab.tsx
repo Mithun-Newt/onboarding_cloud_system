@@ -12,12 +12,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Loader2, Pencil, Bus, MapPin, Clock, Info, CheckCircle2, AlertCircle } from "lucide-react";
 
+import { useSession } from "next-auth/react";
+
 interface Props {
   admission: any;
   busRoutes: any[];
 }
 
 export function TransportTab({ admission, busRoutes }: Props) {
+  const { data: session } = useSession();
+  const roles = (session?.user as any)?.roles || [];
+  const isSysAdminOrTic = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC");
+  const isWriteAllowed = isSysAdminOrTic || roles.includes("ADMISSION_STAFF");
+
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const req = admission.transportReq;
@@ -88,7 +95,7 @@ export function TransportTab({ admission, busRoutes }: Props) {
             Manage school bus transport facility for the student
           </CardDescription>
         </div>
-        {admission.status === "DRAFT" && (
+        {admission.status === "DRAFT" && isWriteAllowed && (
           <Button size="sm" variant="outline" onClick={() => setEditing(!editing)}>
             <Pencil className="mr-1 h-4 w-4" />
             {editing ? "Cancel" : "Edit"}

@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { RoleName } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-const ADMIN_ROLES: RoleName[] = [RoleName.SYSTEM_ADMIN, RoleName.VICE_PRINCIPAL];
+const ADMIN_ROLES: RoleName[] = [RoleName.SYSTEM_ADMIN, RoleName.TIC];
 
 // ── Academic Years ──────────────────────────────────────────────────────────
 

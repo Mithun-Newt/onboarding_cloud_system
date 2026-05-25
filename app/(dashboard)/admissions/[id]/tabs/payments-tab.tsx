@@ -22,7 +22,14 @@ const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
   CANCELLED: { label: "Cancelled", variant: "destructive" },
 };
 
+import { useSession } from "next-auth/react";
+
 export function PaymentsTab({ admission }: { admission: any }) {
+  const { data: session } = useSession();
+  const roles = (session?.user as any)?.roles || [];
+  const isSysAdminOrTic = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC");
+  const isWriteAllowed = isSysAdminOrTic || roles.includes("ADMISSION_STAFF") || roles.includes("CASHIER");
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [collectingPayment, setCollectingPayment] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
@@ -134,7 +141,7 @@ export function PaymentsTab({ admission }: { admission: any }) {
             <CardTitle className="text-base font-semibold">Fees & Outstanding Payments</CardTitle>
             <CardDescription>Track confirmation fees, transport, and customized fee structures</CardDescription>
           </div>
-          {admission.status === "DRAFT" && !collectingPayment && (
+          {admission.status === "DRAFT" && !collectingPayment && isWriteAllowed && (
             <Button size="sm" onClick={() => { setShowAddForm(!showAddForm); setCollectingPayment(null); }}>
               <Plus className="mr-1 h-4 w-4" />{showAddForm ? "Cancel" : "Add Pending Fee"}
             </Button>
@@ -272,7 +279,7 @@ export function PaymentsTab({ admission }: { admission: any }) {
                   <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
                     <p className="font-bold text-sm sm:text-base text-foreground">{formatCurrency(Number(p.amount))}</p>
                     
-                    {canCollect && !collectingPayment && (
+                    {canCollect && !collectingPayment && isWriteAllowed && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -293,7 +300,7 @@ export function PaymentsTab({ admission }: { admission: any }) {
                       </Button>
                     )}
 
-                    {canDelete && (
+                    {canDelete && isWriteAllowed && (
                       <Button
                         size="sm"
                         variant="ghost"

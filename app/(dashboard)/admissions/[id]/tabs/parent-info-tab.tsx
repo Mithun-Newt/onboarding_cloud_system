@@ -11,7 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Loader2, Pencil } from "lucide-react";
 
+import { useSession } from "next-auth/react";
+
 export function ParentInfoTab({ admission }: { admission: any }) {
+  const { data: session } = useSession();
+  const roles = (session?.user as any)?.roles || [];
+  const isSysAdminOrTic = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC");
+  const isWriteAllowed = isSysAdminOrTic || roles.includes("ADMISSION_STAFF");
+
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const guardians = admission.student.family?.guardians ?? [];
@@ -95,7 +102,7 @@ export function ParentInfoTab({ admission }: { admission: any }) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base">Parent / Guardian Information</CardTitle>
-        {admission.status === "DRAFT" && (
+        {admission.status === "DRAFT" && isWriteAllowed && (
           <Button size="sm" variant="outline" onClick={() => setEditing(!editing)}>
             <Pencil className="mr-1 h-4 w-4" />{editing ? "Cancel" : "Edit"}
           </Button>

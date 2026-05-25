@@ -1,12 +1,12 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuth, requireRole } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { registrationSchema } from "@/lib/validations/registration";
 import { generateSequenceNumber, formatRegistrationNo, getAcademicYearCode } from "@/lib/utils";
-import { RegistrationStatus } from "@prisma/client";
+import { RegistrationStatus, RoleName } from "@prisma/client";
 
 function getEligibleGradeName(dob: Date, startYear: number): string | null {
   const targetDate = new Date(startYear, 2, 31); // March 31st
@@ -26,7 +26,7 @@ function getEligibleGradeName(dob: Date, startYear: number): string | null {
 
 export async function createRegistration(formData: unknown) {
   try {
-    const session = await requireAuth();
+    const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
     const data = registrationSchema.parse(formData);
 
     const academicYear = await prisma.academicYear.findUnique({ where: { id: data.academicYearId } });
@@ -101,7 +101,7 @@ export async function createRegistration(formData: unknown) {
 
 export async function updateRegistration(id: string, formData: unknown) {
   try {
-    const session = await requireAuth();
+    const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
     const data = registrationSchema.parse(formData);
 
     const old = await prisma.registration.findUnique({ where: { id } });
@@ -177,7 +177,7 @@ export async function updateRegistration(id: string, formData: unknown) {
 
 export async function cancelRegistration(id: string, reason: string) {
   try {
-    const session = await requireAuth();
+    const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
     const reg = await prisma.registration.findUnique({ where: { id } });
     if (!reg) throw new Error("Registration not found");
     if (reg.status === RegistrationStatus.ADMITTED)

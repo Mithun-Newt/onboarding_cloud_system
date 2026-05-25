@@ -29,8 +29,8 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;   -- needed for gen_random_uuid() and c
 
 DO $$ BEGIN
   CREATE TYPE "RoleName" AS ENUM (
-    'SYSTEM_ADMIN','VICE_PRINCIPAL','ADMISSION_STAFF','CASHIER',
-    'DOCUMENT_VERIFIER','TRANSPORT_STAFF','READ_ONLY_MANAGEMENT'
+    'SYSTEM_ADMIN','TIC','ADMISSION_STAFF','CASHIER',
+    'TRANSPORT_STAFF','READ_ONLY_MANAGEMENT'
   );
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
@@ -621,10 +621,9 @@ DECLARE
     v_grade_g1        TEXT := 'seed-grade-1';
     v_grade_g2        TEXT := 'seed-grade-2';
     v_role_sysadmin   TEXT := 'seed-role-sysadmin';
-    v_role_vp         TEXT := 'seed-role-vp';
+    v_role_tic        TEXT := 'seed-role-tic';
     v_role_adm        TEXT := 'seed-role-adm';
     v_role_cashier    TEXT := 'seed-role-cashier';
-    v_role_docverify  TEXT := 'seed-role-docverify';
     v_role_transport  TEXT := 'seed-role-transport';
     v_role_readonly   TEXT := 'seed-role-readonly';
     v_admin_id        TEXT := 'seed-staff-admin';
@@ -667,10 +666,9 @@ BEGIN
     -- Roles
     INSERT INTO roles (id, name, description) VALUES
         (v_role_sysadmin,  'SYSTEM_ADMIN',          'Full system access including user management'),
-        (v_role_vp,        'VICE_PRINCIPAL',         'School administration oversight'),
+        (v_role_tic,       'TIC',                   'Teacher In Charge oversight'),
         (v_role_adm,       'ADMISSION_STAFF',        'Manage registrations and admissions'),
         (v_role_cashier,   'CASHIER',                'Record and manage fee payments'),
-        (v_role_docverify, 'DOCUMENT_VERIFIER',      'Verify and manage student documents'),
         (v_role_transport, 'TRANSPORT_STAFF',        'Manage transport requests and routes'),
         (v_role_readonly,  'READ_ONLY_MANAGEMENT',   'View-only access to all reports')
     ON CONFLICT (id) DO NOTHING;

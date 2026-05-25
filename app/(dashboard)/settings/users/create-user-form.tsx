@@ -12,10 +12,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const ALL_ROLES = [
   "SYSTEM_ADMIN",
-  "VICE_PRINCIPAL",
+  "TIC",
   "ADMISSION_STAFF",
   "CASHIER",
-  "DOCUMENT_VERIFIER",
   "TRANSPORT_STAFF",
   "READ_ONLY_MANAGEMENT",
 ];

@@ -1,18 +1,18 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuth, requireRole } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
-import { DocumentStatus } from "@prisma/client";
+import { DocumentStatus, RoleName } from "@prisma/client";
 import { getRestrictionForDocumentType } from "@/lib/document-restrictions";
 
 const MAX_SIZE_MB = parseInt(process.env.MAX_FILE_SIZE_MB ?? "10");
 
 export async function uploadDocument(formData: FormData) {
-  const session = await requireAuth();
+  const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
   const file = formData.get("file") as File;
   const studentId = formData.get("studentId") as string;
   const documentTypeId = formData.get("documentTypeId") as string;
@@ -101,7 +101,7 @@ export async function updateDocumentStatus(
   remarks?: string,
   waiverReason?: string
 ) {
-  const session = await requireAuth();
+  const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
   const doc = await prisma.studentDocument.findUnique({ where: { id: documentId } });
   if (!doc) throw new Error("Document not found");
 
@@ -139,7 +139,35 @@ export async function getPendingDocuments() {
   return prisma.studentDocument.findMany({
     where: { status: { in: [DocumentStatus.NOT_RECEIVED, DocumentStatus.UPLOADED] } },
     include: {
-      student: { select: { fullNameEn: true } },
+      student: {
+        select: {
+          fullNameEn: true,
+          admissions: {
+            select: {
+              id: true,
+              grade: {
+                select: {
+                  id: true,
+                  name: true,
+                  sortOrder: true,
+                },
+              },
+            },
+          },
+          registrations: {
+            select: {
+              id: true,
+              grade: {
+                select: {
+                  id: true,
+                  name: true,
+                  sortOrder: true,
+                },
+              },
+            },
+          },
+        },
+      },
       documentType: true,
     },
     orderBy: { createdAt: "desc" },

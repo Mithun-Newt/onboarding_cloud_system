@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Upload, CheckCircle, XCircle, MinusCircle, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getRestrictionForDocumentType, DEFAULT_RESTRICTION } from "@/lib/document-restrictions";
+import { useSession } from "next-auth/react";
 
 const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
   NOT_RECEIVED: { label: "Not Received", variant: "outline" },
@@ -19,6 +20,11 @@ const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
 };
 
 export function DocumentsTab({ admission, documentTypes }: { admission: any; documentTypes: { id: string; name: string }[] }) {
+  const { data: session } = useSession();
+  const roles = (session?.user as any)?.roles || [];
+  const isSysAdminOrTic = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC");
+  const isWriteAllowed = isSysAdminOrTic || roles.includes("ADMISSION_STAFF");
+
   const documents = admission.student.documents;
   const [isPending, startTransition] = useTransition();
 
@@ -84,7 +90,7 @@ export function DocumentsTab({ admission, documentTypes }: { admission: any; doc
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={status.variant}>{status.label}</Badge>
-                  {admission.status === "DRAFT" && (
+                  {admission.status === "DRAFT" && isWriteAllowed && (
                     <div className="flex gap-1">
                       {doc.status === "UPLOADED" && (
                         <>
@@ -108,7 +114,7 @@ export function DocumentsTab({ admission, documentTypes }: { admission: any; doc
             );
           })}
 
-          {admission.status === "DRAFT" && (
+          {admission.status === "DRAFT" && isWriteAllowed && (
             <div className="pt-4 border-t">
               <UploadForm studentId={admission.studentId} documentTypes={documentTypes} onUpload={handleUpload} />
             </div>
