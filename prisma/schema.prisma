@@ -258,6 +258,9 @@ model Student {
   state             String?
   pinCode           String?
   photoPath         String?
+  referredStudentType  String?
+  referredStudentName  String?
+  referredStudentGrade String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -313,6 +316,9 @@ model Registration {
   specialSupport   Boolean            @default(false)
   specialDetails   String?
   staffRemarks     String?
+  referredStudentType  String?
+  referredStudentName  String?
+  referredStudentGrade String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 

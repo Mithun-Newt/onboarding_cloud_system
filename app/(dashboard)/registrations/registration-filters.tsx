@@ -40,7 +40,8 @@ export function RegistrationFilters({ academicYears, grades }: Props) {
     searchParams.get("search") ||
     searchParams.get("academicYearId") ||
     searchParams.get("gradeId") ||
-    searchParams.get("status");
+    searchParams.get("status") ||
+    searchParams.get("hasPriority");
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -89,6 +90,17 @@ export function RegistrationFilters({ academicYears, grades }: Props) {
           {STATUSES.map((s) => (
             <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
           ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={searchParams.get("hasPriority") ?? "__all__"} onValueChange={(v) => set("hasPriority", v)}>
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder="All admissions" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__all__">All admissions</SelectItem>
+          <SelectItem value="true">Priority Only</SelectItem>
+          <SelectItem value="false">Normal Only</SelectItem>
         </SelectContent>
       </Select>
 

@@ -1,29 +1,52 @@
 import { z } from "zod";
 
-export const admissionStudentSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  middleName: z.string().optional(),
-  lastName: z.string().min(1, "Last name is required"),
-  fullNameEn: z.string().optional(),
-  fullNameTa: z.string().optional(),
-  givenName: z.string().optional(),
-  surname: z.string().optional(),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
-  gender: z.enum(["MALE", "FEMALE", "OTHER"]),
-  bloodGroup: z.string().optional(),
-  religion: z.string().optional(),
-  community: z.string().optional(),
-  category: z.string().optional(),
-  motherTongue: z.string().optional(),
-  nationality: z.string().default("Indian"),
-  emisNumber: z.string().optional(),
-  aadhaarLast4: z.string().max(4).optional(),
-  address1: z.string().optional(),
-  address2: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  pinCode: z.string().optional(),
-});
+export const admissionStudentSchema = z
+  .object({
+    firstName: z.string().min(1, "First name is required"),
+    middleName: z.string().optional(),
+    lastName: z.string().min(1, "Last name is required"),
+    fullNameEn: z.string().optional(),
+    fullNameTa: z.string().optional(),
+    givenName: z.string().optional(),
+    surname: z.string().optional(),
+    dateOfBirth: z.string().min(1, "Date of birth is required"),
+    gender: z.enum(["MALE", "FEMALE", "OTHER"]),
+    bloodGroup: z.string().optional(),
+    religion: z.string().optional(),
+    community: z.string().optional(),
+    category: z.string().optional(),
+    motherTongue: z.string().optional(),
+    nationality: z.string().default("Indian"),
+    emisNumber: z.string().optional(),
+    aadhaarLast4: z.string().max(4).optional(),
+    address1: z.string().optional(),
+    address2: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    pinCode: z.string().optional(),
+    referredStudentType: z.string().optional(),
+    referredStudentName: z.string().optional(),
+    referredStudentGrade: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if ((data.referredStudentType === "SIBLING" || data.referredStudentType === "RELATIVE") && !data.referredStudentName) {
+        return false;
+      }
+      return true;
+    },
+    { message: "Referenced student name is required", path: ["referredStudentName"] }
+  )
+  .refine(
+    (data) => {
+      if ((data.referredStudentType === "SIBLING" || data.referredStudentType === "RELATIVE") && !data.referredStudentGrade) {
+        return false;
+      }
+      return true;
+    },
+    { message: "Referenced student grade is required", path: ["referredStudentGrade"] }
+  );
+
 
 export const admissionParentSchema = z.object({
   fatherName: z.string().optional(),

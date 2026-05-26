@@ -24,6 +24,7 @@ interface SearchParams {
   status?: string;
   search?: string;
   page?: string;
+  hasPriority?: string;
 }
 
 export default async function RegistrationsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -36,6 +37,7 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
       gradeId: searchParams.gradeId,
       status: searchParams.status,
       search: searchParams.search,
+      hasPriority: searchParams.hasPriority,
       page,
     }),
     prisma.academicYear.findMany({ orderBy: { startYear: "desc" } }),
@@ -82,7 +84,15 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
                 return (
                   <tr key={r.id} className="border-b last:border-0">
                     <td className="px-4 py-3 font-mono text-xs font-medium text-blue-700">{r.registrationNo}</td>
-                    <td className="px-4 py-3 font-medium">{r.studentName}</td>
+                    <td className="px-4 py-3 font-medium flex items-center gap-1.5">
+                      <span>{r.studentName}</span>
+                      {r.referredStudentType === "SIBLING" && (
+                        <Badge variant="success" className="text-[10px] font-semibold px-1.5 py-0 shrink-0">Sibling</Badge>
+                      )}
+                      {r.referredStudentType === "RELATIVE" && (
+                        <Badge variant="warning" className="text-[10px] font-semibold px-1.5 py-0 shrink-0">Relative</Badge>
+                      )}
+                    </td>
                     <td className="px-4 py-3">{formatDate(r.dateOfBirth)}</td>
                     <td className="px-4 py-3">{r.grade.name}</td>
                     <td className="px-4 py-3">{r.fatherMobile || r.motherMobile || r.primaryContact || "-"}</td>

@@ -67,6 +67,11 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
     ["Special Support", reg.specialSupport ? "Yes" : "No"],
     ["Special Details", reg.specialDetails ?? "-"],
     ["Staff Remarks", reg.staffRemarks ?? "-"],
+    ["Connection Type", reg.referredStudentType === "SIBLING" ? "Sibling" : reg.referredStudentType === "RELATIVE" ? "Relative" : "New Student (No Connection)"],
+    ...(reg.referredStudentType === "SIBLING" || reg.referredStudentType === "RELATIVE" ? [
+      ["Referred Student Name", reg.referredStudentName ?? "-"],
+      ["Referred Student Grade", reg.referredStudentGrade ?? "-"],
+    ] : []),
     ["Created", formatDateTime(reg.createdAt)],
     ["Last Updated", formatDateTime(reg.updatedAt)],
   ];
@@ -79,6 +84,12 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
         </Button>
         <h2 className="text-xl font-bold">Registration Detail</h2>
         <Badge variant={status.variant}>{status.label}</Badge>
+        {reg.referredStudentType === "SIBLING" && (
+          <Badge variant="success">Sibling Priority</Badge>
+        )}
+        {reg.referredStudentType === "RELATIVE" && (
+          <Badge variant="warning">Relative Priority</Badge>
+        )}
         <div className="ml-auto flex gap-2">
           <Button size="sm" variant="outline" asChild>
             <Link href={`/registrations/${reg.id}/print`}><FileText className="mr-1 h-4 w-4" />Print</Link>

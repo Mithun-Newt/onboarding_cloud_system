@@ -12,6 +12,9 @@ export const registrationSchema = z
     dateOfBirth: z.string().min(1, "Date of birth is required"),
     ageRelaxation: z.boolean().optional().default(false),
     gender: z.enum(["MALE", "FEMALE", "OTHER"], { required_error: "Gender is required" }),
+    referredStudentType: z.string().optional(),
+    referredStudentName: z.string().optional(),
+    referredStudentGrade: z.string().optional(),
     fatherName: z.string().optional(),
     fatherMobile: z.string().optional(),
     motherName: z.string().optional(),
@@ -40,6 +43,25 @@ export const registrationSchema = z
       return true;
     },
     { message: "Special support details are required when special support is Yes", path: ["specialDetails"] }
+  )
+  .refine(
+    (data) => {
+      if ((data.referredStudentType === "SIBLING" || data.referredStudentType === "RELATIVE") && !data.referredStudentName) {
+        return false;
+      }
+      return true;
+    },
+    { message: "Referenced student name is required", path: ["referredStudentName"] }
+  )
+  .refine(
+    (data) => {
+      if ((data.referredStudentType === "SIBLING" || data.referredStudentType === "RELATIVE") && !data.referredStudentGrade) {
+        return false;
+      }
+      return true;
+    },
+    { message: "Referenced student grade is required", path: ["referredStudentGrade"] }
   );
+
 
 export type RegistrationInput = z.infer<typeof registrationSchema>;

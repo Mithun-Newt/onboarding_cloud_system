@@ -56,6 +56,9 @@ export async function createRegistration(formData: unknown) {
         studentName: normalizedStudentName,
         dateOfBirth: new Date(data.dateOfBirth),
         gender: data.gender as any,
+        referredStudentType: data.referredStudentType || null,
+        referredStudentName: data.referredStudentName || null,
+        referredStudentGrade: data.referredStudentGrade || null,
         fatherName: data.fatherName,
         fatherMobile: data.fatherMobile,
         motherName: data.motherName,
@@ -136,6 +139,9 @@ export async function updateRegistration(id: string, formData: unknown) {
         studentName: normalizedStudentName,
         dateOfBirth: new Date(data.dateOfBirth),
         gender: data.gender as any,
+        referredStudentType: data.referredStudentType || null,
+        referredStudentName: data.referredStudentName || null,
+        referredStudentGrade: data.referredStudentGrade || null,
         fatherName: data.fatherName,
         fatherMobile: data.fatherMobile,
         motherName: data.motherName,
@@ -166,6 +172,9 @@ export async function updateRegistration(id: string, formData: unknown) {
           city: data.city,
           state: data.state,
           pinCode: data.pinCode,
+          referredStudentType: data.referredStudentType || null,
+          referredStudentName: data.referredStudentName || null,
+          referredStudentGrade: data.referredStudentGrade || null,
         },
       });
     }
@@ -232,6 +241,7 @@ export async function getRegistrations(params: {
   gradeId?: string;
   status?: string;
   search?: string;
+  hasPriority?: string | boolean;
   page?: number;
   pageSize?: number;
 }) {
@@ -244,13 +254,36 @@ export async function getRegistrations(params: {
     if (params.academicYearId) where.academicYearId = params.academicYearId;
     if (params.gradeId) where.gradeId = params.gradeId;
     if (params.status) where.status = params.status;
+
+    const andConditions: any[] = [];
+
+    if (params.hasPriority !== undefined && params.hasPriority !== "") {
+      const isPriority = params.hasPriority === "true" || params.hasPriority === true;
+      if (isPriority) {
+        andConditions.push({ referredStudentType: { in: ["SIBLING", "RELATIVE"] } });
+      } else {
+        andConditions.push({
+          OR: [
+            { referredStudentType: null },
+            { referredStudentType: "NEW_STUDENT" }
+          ]
+        });
+      }
+    }
+
     if (params.search) {
-      where.OR = [
-        { studentName: { contains: params.search, mode: "insensitive" } },
-        { registrationNo: { contains: params.search, mode: "insensitive" } },
-        { fatherMobile: { contains: params.search } },
-        { motherMobile: { contains: params.search } },
-      ];
+      andConditions.push({
+        OR: [
+          { studentName: { contains: params.search, mode: "insensitive" } },
+          { registrationNo: { contains: params.search, mode: "insensitive" } },
+          { fatherMobile: { contains: params.search } },
+          { motherMobile: { contains: params.search } },
+        ]
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     const [items, total] = await Promise.all([

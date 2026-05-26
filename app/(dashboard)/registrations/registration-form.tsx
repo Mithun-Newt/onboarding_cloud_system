@@ -57,6 +57,7 @@ export function RegistrationForm({
   const dobValue = watch("dateOfBirth");
   const academicYearIdValue = watch("academicYearId");
   const ageRelaxationValue = watch("ageRelaxation") ?? false;
+  const referredStudentTypeValue = watch("referredStudentType") ?? "NEW_STUDENT";
 
   useEffect(() => {
     if (!dobValue || !academicYearIdValue) {
@@ -232,6 +233,35 @@ export function RegistrationForm({
               <span className="text-sm font-medium text-amber-700 dark:text-amber-400">Apply Age Relaxation</span>
             </label>
           </div>
+
+          <div className="space-y-2">
+            <Label>Referred Student connection?</Label>
+            <Select value={watch("referredStudentType") ?? "NEW_STUDENT"} onValueChange={(v) => setValue("referredStudentType", v)}>
+              <SelectTrigger><SelectValue placeholder="Select connection" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="NEW_STUDENT">No one (New Student)</SelectItem>
+                <SelectItem value="SIBLING">Yes, Sibling</SelectItem>
+                <SelectItem value="RELATIVE">Yes, Relative</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.referredStudentType && <p className="text-xs text-red-500">{errors.referredStudentType.message}</p>}
+          </div>
+
+          {(referredStudentTypeValue === "SIBLING" || referredStudentTypeValue === "RELATIVE") && (
+            <>
+              <div className="space-y-2">
+                <Label>Referred Student Name *</Label>
+                <Input {...register("referredStudentName")} placeholder="Enter name" />
+                {errors.referredStudentName && <p className="text-xs text-red-500">{errors.referredStudentName.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Referred Student Grade / Class *</Label>
+                <Input {...register("referredStudentGrade")} placeholder="e.g. LKG / Grade 2" />
+                {errors.referredStudentGrade && <p className="text-xs text-red-500">{errors.referredStudentGrade.message}</p>}
+              </div>
+            </>
+          )}
 
           {ageRelaxationValue && (
             <div className="sm:col-span-3 flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 p-2.5 rounded border border-amber-200/50">

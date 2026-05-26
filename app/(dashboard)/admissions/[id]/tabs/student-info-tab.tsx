@@ -58,8 +58,13 @@ export function StudentInfoTab({ admission }: Props) {
       city: student.city ?? "",
       state: student.state ?? "",
       pinCode: student.pinCode ?? "",
+      referredStudentType: student.referredStudentType ?? "NEW_STUDENT",
+      referredStudentName: student.referredStudentName ?? "",
+      referredStudentGrade: student.referredStudentGrade ?? "",
     },
   });
+
+  const referredStudentTypeValue = watch("referredStudentType") ?? "NEW_STUDENT";
 
 
   async function onSubmit(data: any) {
@@ -105,6 +110,11 @@ export function StudentInfoTab({ admission }: Props) {
               ["EMIS Number", student.emisNumber ?? "-"],
               ["Aadhaar (last 4)", student.aadhaarLast4 ? `XXXX XXXX ${student.aadhaarLast4}` : "-"],
               ["Address", [student.address1, student.address2, student.city, student.state, student.pinCode].filter(Boolean).join(", ") || "-"],
+              ["Connection Type", student.referredStudentType === "SIBLING" ? "Sibling" : student.referredStudentType === "RELATIVE" ? "Relative" : "New Student (No Connection)"],
+              ...(student.referredStudentType === "SIBLING" || student.referredStudentType === "RELATIVE" ? [
+                ["Referred Student Name", student.referredStudentName ?? "-"],
+                ["Referred Student Grade", student.referredStudentGrade ?? "-"],
+              ] : []),
             ].map(([label, value]) => (
               <div key={label as string}>
                 <dt className="text-xs text-muted-foreground">{label}</dt>
@@ -225,6 +235,34 @@ export function StudentInfoTab({ admission }: Props) {
                 <Label>PIN Code</Label>
                 <Input {...register("pinCode")} />
               </div>
+              <div className="space-y-2">
+                <Label>Referred Student connection?</Label>
+                <Select value={watch("referredStudentType") ?? "NEW_STUDENT"} onValueChange={(v) => setValue("referredStudentType", v)}>
+                  <SelectTrigger><SelectValue placeholder="Select connection" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NEW_STUDENT">No one (New Student)</SelectItem>
+                    <SelectItem value="SIBLING">Yes, Sibling</SelectItem>
+                    <SelectItem value="RELATIVE">Yes, Relative</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.referredStudentType && <p className="text-xs text-red-500">{(errors.referredStudentType as any).message}</p>}
+              </div>
+
+              {(referredStudentTypeValue === "SIBLING" || referredStudentTypeValue === "RELATIVE") && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Referred Student Name *</Label>
+                    <Input {...register("referredStudentName")} placeholder="Enter name" />
+                    {errors.referredStudentName && <p className="text-xs text-red-500">{(errors.referredStudentName as any).message}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Referred Student Grade / Class *</Label>
+                    <Input {...register("referredStudentGrade")} placeholder="e.g. LKG / Grade 2" />
+                    {errors.referredStudentGrade && <p className="text-xs text-red-500">{(errors.referredStudentGrade as any).message}</p>}
+                  </div>
+                </>
+              )}
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setEditing(false)}>Cancel</Button>

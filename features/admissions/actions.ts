@@ -36,6 +36,9 @@ export async function createAdmission(registrationId: string) {
         city: reg.city,
         state: reg.state,
         pinCode: reg.pinCode,
+        referredStudentType: reg.referredStudentType,
+        referredStudentName: reg.referredStudentName,
+        referredStudentGrade: reg.referredStudentGrade,
       },
     });
 
@@ -129,6 +132,9 @@ export async function updateAdmissionStudent(admissionId: string, data: any) {
         city: data.city,
         state: data.state,
         pinCode: data.pinCode,
+        referredStudentType: data.referredStudentType || null,
+        referredStudentName: data.referredStudentName || null,
+        referredStudentGrade: data.referredStudentGrade || null,
       },
     });
 
