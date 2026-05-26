@@ -100,13 +100,20 @@ export async function updateAdmissionStudent(admissionId: string, data: any) {
     });
     if (!admission) throw new Error("Admission not found");
 
+    let normalizedFullName = data.fullNameEn;
+    if (data.firstName && data.lastName) {
+      const fullNameEn = `${data.firstName} ${data.middleName || ""}`.trim() + ` ${data.lastName}`;
+      normalizedFullName = fullNameEn.replace(/\s+/g, ' ').trim();
+    }
+
     await prisma.student.update({
       where: { id: admission.studentId },
       data: {
-        fullNameEn: data.fullNameEn,
+        fullNameEn: normalizedFullName,
         fullNameTa: data.fullNameTa,
         givenName: data.givenName,
         surname: data.surname,
+
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
         gender: data.gender,
         bloodGroup: data.bloodGroup,

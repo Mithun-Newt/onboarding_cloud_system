@@ -5,24 +5,9 @@ import { requireAuth, requireRole } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 import { registrationSchema } from "@/lib/validations/registration";
-import { generateSequenceNumber, formatRegistrationNo, getAcademicYearCode } from "@/lib/utils";
+import { generateSequenceNumber, formatRegistrationNo, getAcademicYearCode, getEligibleGradeName } from "@/lib/utils";
 import { RegistrationStatus, RoleName } from "@prisma/client";
 
-function getEligibleGradeName(dob: Date, startYear: number): string | null {
-  const targetDate = new Date(startYear, 2, 31); // March 31st
-  let age = targetDate.getFullYear() - dob.getFullYear();
-  const m = targetDate.getMonth() - dob.getMonth();
-  if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
-    age--;
-  }
-
-  if (age === 3) return "Pre-KG";
-  if (age === 4) return "LKG";
-  if (age === 5) return "UKG";
-  if (age === 6) return "Grade 1";
-  if (age === 7) return "Grade 2";
-  return null;
-}
 
 export async function createRegistration(formData: unknown) {
   try {
@@ -35,22 +20,28 @@ export async function createRegistration(formData: unknown) {
     // Validate DOB and Grade mapping
     const dob = new Date(data.dateOfBirth);
     const eligibleGradeName = getEligibleGradeName(dob, academicYear.startYear);
-    if (!eligibleGradeName) {
-      const targetDate = new Date(academicYear.startYear, 2, 31);
-      let age = targetDate.getFullYear() - dob.getFullYear();
-      const m = targetDate.getMonth() - dob.getMonth();
-      if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
-        age--;
-      }
-      throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of March 31, ${academicYear.startYear}.`);
-    }
-
+    
     const selectedGrade = await prisma.grade.findUnique({ where: { id: data.gradeId } });
     if (!selectedGrade) throw new Error("Selected grade not found");
 
-    if (selectedGrade.name !== eligibleGradeName) {
-      throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
+    if (!data.ageRelaxation) {
+      if (!eligibleGradeName) {
+        const targetDate = new Date(academicYear.startYear, 2, 31);
+        let age = targetDate.getFullYear() - dob.getFullYear();
+        const m = targetDate.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
+          age--;
+        }
+        throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of March 31, ${academicYear.startYear}.`);
+      }
+
+      if (selectedGrade.name !== eligibleGradeName) {
+        throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
+      }
     }
+
+    const studentNameCombined = `${data.firstName} ${data.middleName || ""}`.trim() + ` ${data.lastName}`;
+    const normalizedStudentName = studentNameCombined.replace(/\s+/g, ' ').trim();
 
     const yearCode = getAcademicYearCode(academicYear.label);
     const seq = await generateSequenceNumber("REGISTRATION", yearCode);
@@ -62,7 +53,7 @@ export async function createRegistration(formData: unknown) {
         academicYearId: data.academicYearId,
         campusId: data.campusId,
         gradeId: data.gradeId,
-        studentName: data.studentName,
+        studentName: normalizedStudentName,
         dateOfBirth: new Date(data.dateOfBirth),
         gender: data.gender as any,
         fatherName: data.fatherName,
@@ -113,22 +104,28 @@ export async function updateRegistration(id: string, formData: unknown) {
     // Validate DOB and Grade mapping
     const dob = new Date(data.dateOfBirth);
     const eligibleGradeName = getEligibleGradeName(dob, academicYear.startYear);
-    if (!eligibleGradeName) {
-      const targetDate = new Date(academicYear.startYear, 2, 31);
-      let age = targetDate.getFullYear() - dob.getFullYear();
-      const m = targetDate.getMonth() - dob.getMonth();
-      if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
-        age--;
-      }
-      throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of March 31, ${academicYear.startYear}.`);
-    }
-
+    
     const selectedGrade = await prisma.grade.findUnique({ where: { id: data.gradeId } });
     if (!selectedGrade) throw new Error("Selected grade not found");
 
-    if (selectedGrade.name !== eligibleGradeName) {
-      throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
+    if (!data.ageRelaxation) {
+      if (!eligibleGradeName) {
+        const targetDate = new Date(academicYear.startYear, 2, 31);
+        let age = targetDate.getFullYear() - dob.getFullYear();
+        const m = targetDate.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
+          age--;
+        }
+        throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of March 31, ${academicYear.startYear}.`);
+      }
+
+      if (selectedGrade.name !== eligibleGradeName) {
+        throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
+      }
     }
+
+    const studentNameCombined = `${data.firstName} ${data.middleName || ""}`.trim() + ` ${data.lastName}`;
+    const normalizedStudentName = studentNameCombined.replace(/\s+/g, ' ').trim();
 
     const registration = await prisma.registration.update({
       where: { id },
@@ -136,7 +133,7 @@ export async function updateRegistration(id: string, formData: unknown) {
         academicYearId: data.academicYearId,
         campusId: data.campusId,
         gradeId: data.gradeId,
-        studentName: data.studentName,
+        studentName: normalizedStudentName,
         dateOfBirth: new Date(data.dateOfBirth),
         gender: data.gender as any,
         fatherName: data.fatherName,

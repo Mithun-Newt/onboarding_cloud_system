@@ -67,3 +67,67 @@ export function maskAadhaar(last4: string | null | undefined): string {
   if (!last4) return "-";
   return `XXXX XXXX ${last4}`;
 }
+
+export function splitFullName(fullName: string | null | undefined) {
+  if (!fullName) return { firstName: "", middleName: "", lastName: "" };
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 0) return { firstName: "", middleName: "", lastName: "" };
+  if (parts.length === 1) return { firstName: parts[0], middleName: "", lastName: "" };
+  if (parts.length === 2) return { firstName: parts[0], middleName: "", lastName: parts[1] };
+  const firstName = parts[0];
+  const lastName = parts[parts.length - 1];
+  const middleName = parts.slice(1, parts.length - 1).join(" ");
+  return { firstName, middleName, lastName };
+}
+
+export function calculateAgeToday(dobString: Date | string | null | undefined): string {
+  if (!dobString) return "";
+  const dob = new Date(dobString);
+  if (isNaN(dob.getTime())) return "";
+  const today = new Date();
+  
+  let years = today.getFullYear() - dob.getFullYear();
+  let months = today.getMonth() - dob.getMonth();
+  let days = today.getDate() - dob.getDate();
+
+  if (days < 0) {
+    months--;
+    const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  const parts = [];
+  if (years > 0) {
+    parts.push(`${years} ${years === 1 ? "year" : "years"}`);
+  }
+  if (months > 0) {
+    parts.push(`${months} ${months === 1 ? "month" : "months"}`);
+  }
+  if (years === 0 && months === 0 && days >= 0) {
+    parts.push(`${days} ${days === 1 ? "day" : "days"}`);
+  }
+  return parts.join(", ");
+}
+
+export function getEligibleGradeName(dob: Date | string, startYear: number): string | null {
+  const dateObj = new Date(dob);
+  if (isNaN(dateObj.getTime())) return null;
+  const targetDate = new Date(startYear, 2, 31); // March 31st
+  let age = targetDate.getFullYear() - dateObj.getFullYear();
+  const m = targetDate.getMonth() - dateObj.getMonth();
+  if (m < 0 || (m === 0 && targetDate.getDate() < dateObj.getDate())) {
+    age--;
+  }
+
+  if (age === 3) return "Pre-KG";
+  if (age === 4) return "LKG";
+  if (age === 5) return "UKG";
+  if (age === 6) return "Grade 1";
+  if (age === 7) return "Grade 2";
+  return null;
+}
+

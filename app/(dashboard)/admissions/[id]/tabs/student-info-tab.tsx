@@ -15,6 +15,7 @@ import { Loader2, Pencil, Check } from "lucide-react";
 import { format } from "date-fns";
 
 import { useSession } from "next-auth/react";
+import { splitFullName } from "@/lib/utils";
 
 interface Props {
   admission: any;
@@ -30,8 +31,14 @@ export function StudentInfoTab({ admission }: Props) {
   const [loading, setLoading] = useState(false);
   const student = admission.student;
 
+  const { firstName, middleName, lastName } = splitFullName(student.fullNameEn);
+
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
+    resolver: zodResolver(admissionStudentSchema),
     defaultValues: {
+      firstName,
+      middleName,
+      lastName,
       fullNameEn: student.fullNameEn,
       fullNameTa: student.fullNameTa ?? "",
       givenName: student.givenName ?? "",
@@ -53,6 +60,7 @@ export function StudentInfoTab({ admission }: Props) {
       pinCode: student.pinCode ?? "",
     },
   });
+
 
   async function onSubmit(data: any) {
     setLoading(true);
@@ -107,9 +115,20 @@ export function StudentInfoTab({ admission }: Props) {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="space-y-2 sm:col-span-2">
-                <Label>Full Name (English) *</Label>
-                <Input {...register("fullNameEn")} />
+              <div className="space-y-2">
+                <Label>First Name *</Label>
+                <Input {...register("firstName")} />
+                {errors.firstName && <p className="text-xs text-red-500">{(errors.firstName as any).message}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Middle Name (Optional)</Label>
+                <Input {...register("middleName")} />
+                {errors.middleName && <p className="text-xs text-red-500">{(errors.middleName as any).message}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Last Name *</Label>
+                <Input {...register("lastName")} />
+                {errors.lastName && <p className="text-xs text-red-500">{(errors.lastName as any).message}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Full Name (Tamil)</Label>
@@ -126,7 +145,9 @@ export function StudentInfoTab({ admission }: Props) {
               <div className="space-y-2">
                 <Label>Date of Birth</Label>
                 <Input type="date" {...register("dateOfBirth")} />
+                {errors.dateOfBirth && <p className="text-xs text-red-500">{(errors.dateOfBirth as any).message}</p>}
               </div>
+
               <div className="space-y-2">
                 <Label>Gender</Label>
                 <Select value={watch("gender")} onValueChange={(v) => setValue("gender", v as any)}>

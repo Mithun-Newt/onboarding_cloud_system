@@ -1,7 +1,10 @@
 import { z } from "zod";
 
 export const admissionStudentSchema = z.object({
-  fullNameEn: z.string().min(2, "Student name is required"),
+  firstName: z.string().min(1, "First name is required"),
+  middleName: z.string().optional(),
+  lastName: z.string().min(1, "Last name is required"),
+  fullNameEn: z.string().optional(),
   fullNameTa: z.string().optional(),
   givenName: z.string().optional(),
   surname: z.string().optional(),

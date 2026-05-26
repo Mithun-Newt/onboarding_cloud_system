@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { RegistrationForm } from "../../registration-form";
 import { format } from "date-fns";
+import { splitFullName, getEligibleGradeName } from "@/lib/utils";
 
 export default async function EditRegistrationPage({ params }: { params: { id: string } }) {
   const reg = await prisma.registration.findUnique({
@@ -17,6 +18,10 @@ export default async function EditRegistrationPage({ params }: { params: { id: s
       </div>
     );
   }
+
+  const { firstName, middleName, lastName } = splitFullName(reg.studentName);
+  const eligibleGrade = getEligibleGradeName(reg.dateOfBirth, reg.academicYear.startYear);
+  const isRelaxed = reg.grade.name !== eligibleGrade;
 
   const [academicYears, grades, campuses, enquirySources] = await Promise.all([
     prisma.academicYear.findMany({ where: { isActive: true }, orderBy: { startYear: "desc" } }),
@@ -38,7 +43,10 @@ export default async function EditRegistrationPage({ params }: { params: { id: s
           academicYearId: reg.academicYearId,
           campusId: reg.campusId,
           gradeId: reg.gradeId,
-          studentName: reg.studentName,
+          firstName,
+          middleName,
+          lastName,
+          ageRelaxation: isRelaxed,
           dateOfBirth: format(new Date(reg.dateOfBirth), "yyyy-MM-dd"),
           gender: reg.gender,
           fatherName: reg.fatherName ?? "",
@@ -61,3 +69,4 @@ export default async function EditRegistrationPage({ params }: { params: { id: s
     </div>
   );
 }
+

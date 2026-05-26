@@ -16,6 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
 import type { AcademicYear, Grade, Campus, EnquirySource } from "@prisma/client";
+import { calculateAgeToday } from "@/lib/utils";
+
 
 interface Props {
   academicYears: AcademicYear[];
@@ -54,6 +56,7 @@ export function RegistrationForm({
   const specialSupport = watch("specialSupport");
   const dobValue = watch("dateOfBirth");
   const academicYearIdValue = watch("academicYearId");
+  const ageRelaxationValue = watch("ageRelaxation") ?? false;
 
   useEffect(() => {
     if (!dobValue || !academicYearIdValue) {
@@ -81,6 +84,11 @@ export function RegistrationForm({
       age--;
     }
 
+    if (ageRelaxationValue) {
+      setAgeError(null);
+      return;
+    }
+
     if (age < 3 || age >= 8) {
       setAgeError(`Student age of ${age} years is not eligible for admission. Age must be between 3 and 8 years as of March 31, ${startYear}.`);
       setValue("gradeId", "");
@@ -98,9 +106,13 @@ export function RegistrationForm({
         setValue("gradeId", matchingGrade.id);
       }
     }
-  }, [dobValue, academicYearIdValue, academicYears, grades, setValue]);
+  }, [dobValue, academicYearIdValue, ageRelaxationValue, academicYears, grades, setValue]);
 
   const filteredGrades = (() => {
+    if (ageRelaxationValue) {
+      return grades;
+    }
+
     if (!dobValue || !academicYearIdValue || ageError) {
       if (ageError) return [];
       return grades;
@@ -131,6 +143,9 @@ export function RegistrationForm({
     return grades.filter((g) => g.name === matchingGradeName);
   })();
 
+  const calculatedAge = dobValue ? calculateAgeToday(dobValue) : "";
+
+
   async function onSubmit(data: RegistrationInput) {
     if (ageError) {
       toast.error(ageError);
@@ -156,6 +171,77 @@ export function RegistrationForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Student Info */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Student Information</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label>First Name *</Label>
+            <Input {...register("firstName")} />
+            {errors.firstName && <p className="text-xs text-red-500">{errors.firstName.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Middle Name (Optional)</Label>
+            <Input {...register("middleName")} />
+            {errors.middleName && <p className="text-xs text-red-500">{errors.middleName.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Last Name *</Label>
+            <Input {...register("lastName")} />
+            {errors.lastName && <p className="text-xs text-red-500">{errors.lastName.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Date of Birth *</Label>
+            <Input type="date" {...register("dateOfBirth")} />
+            {errors.dateOfBirth && <p className="text-xs text-red-500">{errors.dateOfBirth.message}</p>}
+            {ageError && <p className="text-xs text-red-500 font-medium">{ageError}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Age (Today)</Label>
+            <Input value={calculatedAge || "Enter date of birth"} readOnly className="bg-muted text-muted-foreground" />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Gender *</Label>
+            <Select value={watch("gender")} onValueChange={(v) => setValue("gender", v as any)}>
+              <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MALE">Male</SelectItem>
+                <SelectItem value="FEMALE">Female</SelectItem>
+                <SelectItem value="OTHER">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.gender && <p className="text-xs text-red-500">{errors.gender.message}</p>}
+          </div>
+
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Previous School Name</Label>
+            <Input {...register("prevSchoolName")} placeholder="If applicable" />
+          </div>
+
+          <div className="space-y-2 flex flex-col justify-end pb-1.5">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <Checkbox
+                checked={ageRelaxationValue}
+                onCheckedChange={(v) => setValue("ageRelaxation", Boolean(v))}
+              />
+              <span className="text-sm font-medium text-amber-700 dark:text-amber-400">Apply Age Relaxation</span>
+            </label>
+          </div>
+
+          {ageRelaxationValue && (
+            <div className="sm:col-span-3 flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 p-2.5 rounded border border-amber-200/50">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <span>Age relaxation is active. Age eligibility checks are bypassed; you can choose any Applied Grade.</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Academic Info */}
       <Card>
         <CardHeader><CardTitle className="text-base">Academic Information</CardTitle></CardHeader>
@@ -193,43 +279,6 @@ export function RegistrationForm({
               </SelectContent>
             </Select>
             {errors.gradeId && <p className="text-xs text-red-500">{errors.gradeId.message}</p>}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Student Info */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Student Information</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="space-y-2 sm:col-span-2">
-            <Label>Student Full Name *</Label>
-            <Input {...register("studentName")} />
-            {errors.studentName && <p className="text-xs text-red-500">{errors.studentName.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Date of Birth *</Label>
-            <Input type="date" {...register("dateOfBirth")} />
-            {errors.dateOfBirth && <p className="text-xs text-red-500">{errors.dateOfBirth.message}</p>}
-            {ageError && <p className="text-xs text-red-500 font-medium">{ageError}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Gender *</Label>
-            <Select value={watch("gender")} onValueChange={(v) => setValue("gender", v as any)}>
-              <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="MALE">Male</SelectItem>
-                <SelectItem value="FEMALE">Female</SelectItem>
-                <SelectItem value="OTHER">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.gender && <p className="text-xs text-red-500">{errors.gender.message}</p>}
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <Label>Previous School Name</Label>
-            <Input {...register("prevSchoolName")} placeholder="If applicable" />
           </div>
         </CardContent>
       </Card>
@@ -345,3 +394,4 @@ export function RegistrationForm({
     </form>
   );
 }
+
