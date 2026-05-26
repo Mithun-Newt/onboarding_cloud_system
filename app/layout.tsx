@@ -6,8 +6,8 @@ import { Providers } from "./providers";
 const inter = { className: "font-sans" };
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_NAME ?? "Junior School Admissions System",
-  description: "Staff-operated admissions management system",
+  title: process.env.NEXT_PUBLIC_APP_NAME ?? "Student Onboarding Platform",
+  description: "Staff-operated student onboarding platform",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

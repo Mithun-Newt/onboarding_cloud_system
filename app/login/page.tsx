@@ -97,7 +97,7 @@ export default function LoginPage() {
           </h1>
           
           {/* Subtitle */}
-          <p className="mt-2 text-sm text-gray-600">Admissions Management System</p>
+          <p className="mt-2 text-sm text-gray-600">Student Onboarding Platform</p>
         </div>
 
         <Card>

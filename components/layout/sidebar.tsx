@@ -72,7 +72,7 @@ export function Sidebar() {
           <p className="text-sm font-bold leading-tight text-green-700">
             {process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}
           </p>
-          <p className="text-xs text-gray-600">Admissions System</p>
+          <p className="text-xs text-gray-600">Student Onboarding Platform</p>
         </div>
       </div>
 

@@ -191,7 +191,7 @@ export async function sourceWiseReport(filter: ReportFilter) {
 
     const sources = await prisma.enquirySource.findMany();
     return data.map((d) => ({
-      source: sources?.find((s) => s.id === d.enquirySourceId)?.name ?? "Unknown",
+      source: sources?.find((s) => s.id === d.enquirySourceId)?.name ?? "Not Specified",
       count: d._count.id,
     }));
   } catch (error) {

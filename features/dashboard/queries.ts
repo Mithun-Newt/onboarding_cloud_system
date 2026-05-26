@@ -87,7 +87,7 @@ export async function getDashboardStats(academicYearId?: string) {
 
   const sourceStats = sourceWise.map((s) => {
     const src = enquirySources.find((e) => e.id === s.enquirySourceId);
-    return { source: src?.name ?? "Unknown", count: s._count.id };
+    return { source: src?.name ?? "Not Specified", count: s._count.id };
   });
 
   return {
