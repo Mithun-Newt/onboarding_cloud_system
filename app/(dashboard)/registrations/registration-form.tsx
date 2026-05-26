@@ -78,20 +78,18 @@ export function RegistrationForm({
     }
 
     const startYear = selectedYear.startYear;
-    const targetDate = new Date(startYear, 2, 31); // March 31st
+    const targetMonthIndex = ageRelaxationValue ? 5 : 2;
+    const targetDay = ageRelaxationValue ? 30 : 31;
+    const targetMonthName = ageRelaxationValue ? "June 30" : "March 31";
+    const targetDate = new Date(startYear, targetMonthIndex, targetDay);
     let age = targetDate.getFullYear() - dob.getFullYear();
     const m = targetDate.getMonth() - dob.getMonth();
     if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
       age--;
     }
 
-    if (ageRelaxationValue) {
-      setAgeError(null);
-      return;
-    }
-
     if (age < 3 || age >= 8) {
-      setAgeError(`Student age of ${age} years is not eligible for admission. Age must be between 3 and 8 years as of March 31, ${startYear}.`);
+      setAgeError(`Student age of ${age} years is not eligible for admission. Age must be between 3 and 8 years as of ${targetMonthName}, ${startYear}.`);
       setValue("gradeId", "");
     } else {
       setAgeError(null);
@@ -110,10 +108,6 @@ export function RegistrationForm({
   }, [dobValue, academicYearIdValue, ageRelaxationValue, academicYears, grades, setValue]);
 
   const filteredGrades = (() => {
-    if (ageRelaxationValue) {
-      return grades;
-    }
-
     if (!dobValue || !academicYearIdValue || ageError) {
       if (ageError) return [];
       return grades;
@@ -126,7 +120,9 @@ export function RegistrationForm({
     if (isNaN(dob.getTime())) return grades;
 
     const startYear = selectedYear.startYear;
-    const targetDate = new Date(startYear, 2, 31);
+    const targetMonthIndex = ageRelaxationValue ? 5 : 2;
+    const targetDay = ageRelaxationValue ? 30 : 31;
+    const targetDate = new Date(startYear, targetMonthIndex, targetDay);
     let age = targetDate.getFullYear() - dob.getFullYear();
     const m = targetDate.getMonth() - dob.getMonth();
     if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
@@ -266,7 +262,7 @@ export function RegistrationForm({
           {ageRelaxationValue && (
             <div className="sm:col-span-3 flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 p-2.5 rounded border border-amber-200/50">
               <AlertTriangle className="h-4 w-4 shrink-0" />
-              <span>Age relaxation is active. Age eligibility checks are bypassed; you can choose any Applied Grade.</span>
+              <span>Age relaxation is active. The age eligibility threshold is shifted to June 30th of the academic year.</span>
             </div>
           )}
         </CardContent>

@@ -19,25 +19,26 @@ export async function createRegistration(formData: unknown) {
 
     // Validate DOB and Grade mapping
     const dob = new Date(data.dateOfBirth);
-    const eligibleGradeName = getEligibleGradeName(dob, academicYear.startYear);
+    const eligibleGradeName = getEligibleGradeName(dob, academicYear.startYear, data.ageRelaxation);
     
     const selectedGrade = await prisma.grade.findUnique({ where: { id: data.gradeId } });
     if (!selectedGrade) throw new Error("Selected grade not found");
 
-    if (!data.ageRelaxation) {
-      if (!eligibleGradeName) {
-        const targetDate = new Date(academicYear.startYear, 2, 31);
-        let age = targetDate.getFullYear() - dob.getFullYear();
-        const m = targetDate.getMonth() - dob.getMonth();
-        if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
-          age--;
-        }
-        throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of March 31, ${academicYear.startYear}.`);
+    if (!eligibleGradeName) {
+      const targetMonthIndex = data.ageRelaxation ? 5 : 2;
+      const targetDay = data.ageRelaxation ? 30 : 31;
+      const targetMonthName = data.ageRelaxation ? "June 30" : "March 31";
+      const targetDate = new Date(academicYear.startYear, targetMonthIndex, targetDay);
+      let age = targetDate.getFullYear() - dob.getFullYear();
+      const m = targetDate.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
+        age--;
       }
+      throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of ${targetMonthName}, ${academicYear.startYear}.`);
+    }
 
-      if (selectedGrade.name !== eligibleGradeName) {
-        throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
-      }
+    if (selectedGrade.name !== eligibleGradeName) {
+      throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
     }
 
     const studentNameCombined = `${data.firstName} ${data.middleName || ""}`.trim() + ` ${data.lastName}`;
@@ -106,25 +107,26 @@ export async function updateRegistration(id: string, formData: unknown) {
 
     // Validate DOB and Grade mapping
     const dob = new Date(data.dateOfBirth);
-    const eligibleGradeName = getEligibleGradeName(dob, academicYear.startYear);
+    const eligibleGradeName = getEligibleGradeName(dob, academicYear.startYear, data.ageRelaxation);
     
     const selectedGrade = await prisma.grade.findUnique({ where: { id: data.gradeId } });
     if (!selectedGrade) throw new Error("Selected grade not found");
 
-    if (!data.ageRelaxation) {
-      if (!eligibleGradeName) {
-        const targetDate = new Date(academicYear.startYear, 2, 31);
-        let age = targetDate.getFullYear() - dob.getFullYear();
-        const m = targetDate.getMonth() - dob.getMonth();
-        if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
-          age--;
-        }
-        throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of March 31, ${academicYear.startYear}.`);
+    if (!eligibleGradeName) {
+      const targetMonthIndex = data.ageRelaxation ? 5 : 2;
+      const targetDay = data.ageRelaxation ? 30 : 31;
+      const targetMonthName = data.ageRelaxation ? "June 30" : "March 31";
+      const targetDate = new Date(academicYear.startYear, targetMonthIndex, targetDay);
+      let age = targetDate.getFullYear() - dob.getFullYear();
+      const m = targetDate.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
+        age--;
       }
+      throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of ${targetMonthName}, ${academicYear.startYear}.`);
+    }
 
-      if (selectedGrade.name !== eligibleGradeName) {
-        throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
-      }
+    if (selectedGrade.name !== eligibleGradeName) {
+      throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
     }
 
     const studentNameCombined = `${data.firstName} ${data.middleName || ""}`.trim() + ` ${data.lastName}`;

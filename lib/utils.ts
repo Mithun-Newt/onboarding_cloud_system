@@ -113,10 +113,13 @@ export function calculateAgeToday(dobString: Date | string | null | undefined): 
   return parts.join(", ");
 }
 
-export function getEligibleGradeName(dob: Date | string, startYear: number): string | null {
+export function getEligibleGradeName(dob: Date | string, startYear: number, ageRelaxation: boolean = false): string | null {
   const dateObj = new Date(dob);
   if (isNaN(dateObj.getTime())) return null;
-  const targetDate = new Date(startYear, 2, 31); // March 31st
+  
+  // Shift target date threshold from March 31st to June 30th if age relaxation is active
+  const targetDate = ageRelaxation ? new Date(startYear, 5, 30) : new Date(startYear, 2, 31);
+  
   let age = targetDate.getFullYear() - dateObj.getFullYear();
   const m = targetDate.getMonth() - dateObj.getMonth();
   if (m < 0 || (m === 0 && targetDate.getDate() < dateObj.getDate())) {
