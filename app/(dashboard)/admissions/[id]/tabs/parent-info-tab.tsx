@@ -102,7 +102,7 @@ export function ParentInfoTab({ admission }: { admission: any }) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base">Parent / Guardian Information</CardTitle>
-        {admission.status === "DRAFT" && isWriteAllowed && (
+        {admission.status !== "CANCELLED" && isWriteAllowed && (
           <Button size="sm" variant="outline" onClick={() => setEditing(!editing)}>
             <Pencil className="mr-1 h-4 w-4" />{editing ? "Cancel" : "Edit"}
           </Button>

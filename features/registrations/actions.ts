@@ -154,6 +154,22 @@ export async function updateRegistration(id: string, formData: unknown) {
       },
     });
 
+    if (old.studentId) {
+      await prisma.student.update({
+        where: { id: old.studentId },
+        data: {
+          fullNameEn: normalizedStudentName,
+          dateOfBirth: new Date(data.dateOfBirth),
+          gender: data.gender as any,
+          address1: data.address1,
+          address2: data.address2,
+          city: data.city,
+          state: data.state,
+          pinCode: data.pinCode,
+        },
+      });
+    }
+
     await createAuditLog({
       actorUserId: session.user.id,
       action: "UPDATE",
@@ -165,6 +181,16 @@ export async function updateRegistration(id: string, formData: unknown) {
 
     revalidatePath("/registrations");
     revalidatePath(`/registrations/${id}`);
+
+    if (old.studentId) {
+      const admission = await prisma.admissionApplication.findFirst({
+        where: { studentId: old.studentId },
+      });
+      if (admission) {
+        revalidatePath(`/admissions/${admission.id}`);
+      }
+    }
+
     return registration;
   } catch (error) {
     console.error("UPDATE_REGISTRATION_ERROR:", error);
@@ -271,5 +297,106 @@ export async function checkDuplicate(studentName: string, dateOfBirth: string, m
   } catch (error) {
     console.error("CHECK_DUPLICATE_ERROR:", error);
     return false;
+  }
+}
+
+export async function deleteRegistration(id: string) {
+  try {
+    const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
+    const reg = await prisma.registration.findUnique({
+      where: { id },
+      include: {
+        admissions: true,
+        student: true,
+      },
+    });
+    if (!reg) throw new Error("Registration not found");
+    if (reg.status === RegistrationStatus.ADMITTED) {
+      throw new Error("Cannot delete an admitted registration");
+    }
+
+    // Delete admissions and related data
+    for (const admission of reg.admissions) {
+      await prisma.payment.deleteMany({
+        where: { admissionId: admission.id },
+      });
+
+      await prisma.admissionStatusHistory.deleteMany({
+        where: { admissionId: admission.id },
+      });
+
+      await prisma.previousSchoolDetail.deleteMany({
+        where: { admissionId: admission.id },
+      });
+
+      await prisma.transportRequest.deleteMany({
+        where: { admissionId: admission.id },
+      });
+
+      await prisma.admissionApplication.delete({
+        where: { id: admission.id },
+      });
+    }
+
+    // Delete student and related data
+    if (reg.student) {
+      await prisma.studentDocument.deleteMany({
+        where: { studentId: reg.student.id },
+      });
+
+      await prisma.studentMedicalProfile.deleteMany({
+        where: { studentId: reg.student.id },
+      });
+
+      await prisma.studentVaccination.deleteMany({
+        where: { studentId: reg.student.id },
+      });
+
+      await prisma.siblingRelative.deleteMany({
+        where: { studentId: reg.student.id },
+      });
+
+      if (reg.student.familyId) {
+        await prisma.guardian.deleteMany({
+          where: { familyId: reg.student.familyId },
+        });
+
+        const familyWithOtherStudents = await prisma.family.findUnique({
+          where: { id: reg.student.familyId },
+          include: { students: true },
+        });
+
+        if (familyWithOtherStudents && familyWithOtherStudents.students.length === 1) {
+          await prisma.family.delete({
+            where: { id: reg.student.familyId },
+          });
+        }
+      }
+    }
+
+    // Delete the registration itself
+    await prisma.registration.delete({
+      where: { id },
+    });
+
+    // Delete the student record itself after deleting registration to clear foreign keys
+    if (reg.student) {
+      await prisma.student.delete({
+        where: { id: reg.student.id },
+      });
+    }
+
+    await createAuditLog({
+      actorUserId: session.user.id,
+      action: "DELETE",
+      entityType: "Registration",
+      entityId: id,
+      oldValue: { registrationNo: reg.registrationNo, studentName: reg.studentName },
+    });
+
+    revalidatePath("/registrations");
+  } catch (error) {
+    console.error("DELETE_REGISTRATION_ERROR:", error);
+    throw error instanceof Error ? error : new Error("Failed to delete registration");
   }
 }

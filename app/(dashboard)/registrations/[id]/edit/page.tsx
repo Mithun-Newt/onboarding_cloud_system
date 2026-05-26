@@ -10,14 +10,15 @@ export default async function EditRegistrationPage({ params }: { params: { id: s
     include: { academicYear: true, grade: true, campus: true },
   });
   if (!reg) notFound();
-  if (reg.status !== "REGISTERED") {
+  if (reg.status === "CANCELLED") {
     return (
       <div className="rounded-lg border bg-amber-50 p-6 text-amber-700">
         <p className="font-medium">Cannot edit this registration</p>
-        <p className="text-sm">Registrations with status {reg.status} cannot be edited.</p>
+        <p className="text-sm">Cancelled registrations cannot be edited.</p>
       </div>
     );
   }
+
 
   const { firstName, middleName, lastName } = splitFullName(reg.studentName);
   const eligibleGrade = getEligibleGradeName(reg.dateOfBirth, reg.academicYear.startYear);

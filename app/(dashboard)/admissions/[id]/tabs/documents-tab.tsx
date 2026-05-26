@@ -90,7 +90,7 @@ export function DocumentsTab({ admission, documentTypes }: { admission: any; doc
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={status.variant}>{status.label}</Badge>
-                  {admission.status === "DRAFT" && isWriteAllowed && (
+                  {admission.status !== "CANCELLED" && isWriteAllowed && (
                     <div className="flex gap-1">
                       {doc.status === "UPLOADED" && (
                         <>
@@ -114,7 +114,7 @@ export function DocumentsTab({ admission, documentTypes }: { admission: any; doc
             );
           })}
 
-          {admission.status === "DRAFT" && isWriteAllowed && (
+          {admission.status !== "CANCELLED" && isWriteAllowed && (
             <div className="pt-4 border-t">
               <UploadForm studentId={admission.studentId} documentTypes={documentTypes} onUpload={handleUpload} />
             </div>

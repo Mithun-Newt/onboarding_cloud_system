@@ -95,7 +95,7 @@ export function TransportTab({ admission, busRoutes }: Props) {
             Manage school bus transport facility for the student
           </CardDescription>
         </div>
-        {admission.status === "DRAFT" && isWriteAllowed && (
+        {admission.status !== "CANCELLED" && isWriteAllowed && (
           <Button size="sm" variant="outline" onClick={() => setEditing(!editing)}>
             <Pencil className="mr-1 h-4 w-4" />
             {editing ? "Cancel" : "Edit"}
@@ -114,7 +114,7 @@ export function TransportTab({ admission, busRoutes }: Props) {
                 <p className="text-xs text-muted-foreground mt-1 max-w-sm">
                   This student has not opted for school bus transport.
                 </p>
-                {admission.status === "DRAFT" && (
+                {admission.status !== "CANCELLED" && (
                   <Button size="sm" variant="outline" className="mt-4" onClick={() => setEditing(true)}>
                     <Pencil className="mr-1 h-4 w-4" /> Configure Transport
                   </Button>

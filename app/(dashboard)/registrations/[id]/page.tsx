@@ -8,7 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pencil, FileText, ArrowRight, ArrowLeft } from "lucide-react";
 import { CancelRegistrationButton } from "./cancel-button";
 import { StartAdmissionButton } from "./start-admission-button";
+import { DeleteRegistrationButton } from "./delete-button";
 import { getSession } from "@/lib/auth";
+
 
 const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
   REGISTERED: { label: "Registered", variant: "info" },
@@ -81,11 +83,16 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
           <Button size="sm" variant="outline" asChild>
             <Link href={`/registrations/${reg.id}/print`}><FileText className="mr-1 h-4 w-4" />Print</Link>
           </Button>
+          {reg.status !== "CANCELLED" && isWriteAllowed && (
+            <Button size="sm" variant="outline" asChild>
+              <Link href={`/registrations/${reg.id}/edit`}><Pencil className="mr-1 h-4 w-4" />Edit</Link>
+            </Button>
+          )}
+          {(reg.status === "REGISTERED" || reg.status === "ADMISSION_STARTED") && isWriteAllowed && (
+            <DeleteRegistrationButton registrationId={reg.id} />
+          )}
           {reg.status === "REGISTERED" && isWriteAllowed && (
             <>
-              <Button size="sm" variant="outline" asChild>
-                <Link href={`/registrations/${reg.id}/edit`}><Pencil className="mr-1 h-4 w-4" />Edit</Link>
-              </Button>
               <CancelRegistrationButton registrationId={reg.id} />
               <StartAdmissionButton registrationId={reg.id} studentName={reg.studentName} />
             </>
@@ -103,6 +110,7 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
             </Button>
           )}
         </div>
+
       </div>
 
       <Card>

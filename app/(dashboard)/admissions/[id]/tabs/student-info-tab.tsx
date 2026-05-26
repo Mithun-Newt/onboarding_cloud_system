@@ -79,7 +79,7 @@ export function StudentInfoTab({ admission }: Props) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base">Student Information</CardTitle>
-        {admission.status === "DRAFT" && isWriteAllowed && (
+        {admission.status !== "CANCELLED" && isWriteAllowed && (
           <Button size="sm" variant="outline" onClick={() => setEditing(!editing)}>
             {editing ? <Check className="mr-1 h-4 w-4" /> : <Pencil className="mr-1 h-4 w-4" />}
             {editing ? "Cancel" : "Edit"}
