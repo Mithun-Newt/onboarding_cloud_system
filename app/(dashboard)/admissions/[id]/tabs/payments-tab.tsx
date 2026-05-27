@@ -141,7 +141,7 @@ export function PaymentsTab({ admission }: { admission: any }) {
             <CardTitle className="text-base font-semibold">Fees & Outstanding Payments</CardTitle>
             <CardDescription>Track confirmation fees, transport, and customized fee structures</CardDescription>
           </div>
-          {admission.status === "DRAFT" && !collectingPayment && isWriteAllowed && (
+          {admission.status !== "CANCELLED" && !collectingPayment && isWriteAllowed && (
             <Button size="sm" onClick={() => { setShowAddForm(!showAddForm); setCollectingPayment(null); }}>
               <Plus className="mr-1 h-4 w-4" />{showAddForm ? "Cancel" : "Add Pending Fee"}
             </Button>
@@ -244,7 +244,7 @@ export function PaymentsTab({ admission }: { admission: any }) {
           <div className="divide-y border-t mt-4">
             {admission.payments.map((p: any) => {
               const s = STATUS_BADGES[p.paymentStatus] ?? { label: p.paymentStatus, variant: "outline" };
-              const canCollect = (p.paymentStatus === "PENDING" || p.paymentStatus === "PARTIAL") && admission.status === "DRAFT";
+              const canCollect = (p.paymentStatus === "PENDING" || p.paymentStatus === "PARTIAL") && admission.status !== "CANCELLED";
               const canDelete = canCollect && p.feeType !== "Confirmation Fee";
 
               return (

@@ -137,7 +137,10 @@ export async function updateDocumentStatus(
 
 export async function getPendingDocuments() {
   return prisma.studentDocument.findMany({
-    where: { status: { in: [DocumentStatus.NOT_RECEIVED, DocumentStatus.UPLOADED] } },
+    where: {
+      status: { in: [DocumentStatus.NOT_RECEIVED, DocumentStatus.UPLOADED, DocumentStatus.REJECTED] },
+      documentType: { isRequired: true }
+    },
     include: {
       student: {
         select: {

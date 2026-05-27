@@ -26,14 +26,41 @@ export async function createAdmission(registrationId: string) {
     });
     if (existingAdmission) throw new Error("Admission already exists for this registration");
 
+    // 1. Create family and guardians from registration details
+    const family = await prisma.family.create({ data: {} });
+    const guardiansData: any[] = [];
+    if (reg.fatherName || reg.fatherMobile) {
+      guardiansData.push({
+        familyId: family.id,
+        relationship: "FATHER",
+        fullName: reg.fatherName || "Father",
+        mobile: reg.fatherMobile || null,
+        isPrimary: reg.primaryContact === "FATHER" || !reg.primaryContact,
+      });
+    }
+    if (reg.motherName || reg.motherMobile) {
+      guardiansData.push({
+        familyId: family.id,
+        relationship: "MOTHER",
+        fullName: reg.motherName || "Mother",
+        mobile: reg.motherMobile || null,
+        isPrimary: reg.primaryContact === "MOTHER",
+      });
+    }
+    if (guardiansData.length > 0) {
+      await prisma.guardian.createMany({ data: guardiansData });
+    }
+
+    // 2. Create student with link to family and address details
     const student = await prisma.student.create({
       data: {
+        familyId: family.id,
         fullNameEn: reg.studentName,
         givenName: reg.studentName,
-        surname: null,
-        givenNameTa: null,
-        surnameTa: null,
-        fullNameTa: null,
+        surname: "",
+        givenNameTa: "",
+        surnameTa: "",
+        fullNameTa: "",
         dateOfBirth: reg.dateOfBirth,
         gender: reg.gender,
         address1: reg.address1,
@@ -47,6 +74,31 @@ export async function createAdmission(registrationId: string) {
       },
     });
 
+    // 3. Create default medical profile pre-populated with special support info
+    await prisma.studentMedicalProfile.create({
+      data: {
+        studentId: student.id,
+        walkingStatus: "Normal",
+        speechStatus: "Normal",
+        hasAllergies: false,
+        needsMedication: false,
+        specialAttention: reg.specialSupport ? reg.specialDetails : "None",
+      },
+    });
+
+    // 4. Create default documents checklists with status NOT_RECEIVED
+    const activeDocTypes = await prisma.documentType.findMany({ where: { isActive: true } });
+    if (activeDocTypes.length > 0) {
+      await prisma.studentDocument.createMany({
+        data: activeDocTypes.map((dt) => ({
+          studentId: student.id,
+          documentTypeId: dt.id,
+          status: "NOT_RECEIVED",
+        })),
+      });
+    }
+
+    // 5. Create admission application
     const admission = await prisma.admissionApplication.create({
       data: {
         registrationId,
@@ -57,6 +109,16 @@ export async function createAdmission(registrationId: string) {
         status: AdmissionStatus.DRAFT,
       },
     });
+
+    // 6. Create previous school detail if present in registration
+    if (reg.prevSchoolName) {
+      await prisma.previousSchoolDetail.create({
+        data: {
+          admissionId: admission.id,
+          schoolName: reg.prevSchoolName,
+        },
+      });
+    }
 
     // Create default grade-based confirmation fee payment record (PENDING status)
     const confirmationFeeAmount = getConfirmationFeeForGrade(reg.grade.name);
@@ -255,18 +317,92 @@ export async function confirmAdmission(admissionId: string) {
     where: { id: admissionId },
     include: {
       registration: { include: { academicYear: true } },
-      student: { include: { documents: true } },
+      student: {
+        include: {
+          documents: { include: { documentType: true } },
+          family: { include: { guardians: true } },
+          medicalProfile: true,
+        },
+      },
       payments: true,
     },
   });
   if (!admission) throw new Error("Admission not found");
   if (admission.status !== AdmissionStatus.DRAFT) throw new Error("Only DRAFT admissions can be confirmed");
 
-  const requiredDocs = await prisma.documentType.findMany({ where: { isRequired: true, isActive: true } });
-  for (const dt of requiredDocs) {
-    const doc = admission.student.documents.find((d) => d.documentTypeId === dt.id);
+  // Load full student profile to check required fields
+  const student = admission.student;
+
+  // 1. Validate Student Information fields (all required except EMIS and Aadhaar last 4)
+  const requiredStudentFields = [
+    { value: student.givenName, label: "Given Name (English)" },
+    { value: student.surname, label: "Surname/Family Name (English)" },
+    { value: student.givenNameTa, label: "Given Name (Tamil)" },
+    { value: student.surnameTa, label: "Surname/Family Name (Tamil)" },
+    { value: student.dateOfBirth, label: "Date of Birth" },
+    { value: student.gender, label: "Gender" },
+    { value: student.bloodGroup, label: "Blood Group" },
+    { value: student.religion, label: "Religion" },
+    { value: student.community, label: "Community" },
+    { value: student.category, label: "Category" },
+    { value: student.motherTongue, label: "Mother Tongue" },
+    { value: student.nationality, label: "Nationality" },
+    { value: student.address1, label: "Address Line 1" },
+    { value: student.city, label: "City" },
+    { value: student.state, label: "State" },
+    { value: student.pinCode, label: "PIN Code" },
+  ];
+
+  for (const field of requiredStudentFields) {
+    if (!field.value || field.value.toString().trim() === "") {
+      throw new Error(`Student Information field "${field.label}" must be filled before confirming admission.`);
+    }
+  }
+
+  // 2. Validate Parent/Guardian Information fields (all required except email)
+  if (!student.family) {
+    throw new Error("Parent/Guardian Information must be filled before confirming admission.");
+  }
+  const guardians = student.family.guardians;
+  const father = guardians.find((g) => g.relationship === "FATHER");
+  const mother = guardians.find((g) => g.relationship === "MOTHER");
+
+  if (!father || !father.fullName?.trim() || !father.mobile?.trim() || !father.education?.trim() || !father.occupation?.trim() || !father.annualIncome) {
+    throw new Error("Father's Name, Mobile, Education, Occupation, and Annual Income are required in Parent/Guardian Information.");
+  }
+  if (!mother || !mother.fullName?.trim() || !mother.mobile?.trim() || !mother.education?.trim() || !mother.occupation?.trim() || !mother.annualIncome) {
+    throw new Error("Mother's Name, Mobile, Education, Occupation, and Annual Income are required in Parent/Guardian Information.");
+  }
+
+  // 3. Validate Medical Profile fields (all required)
+  if (!student.medicalProfile) {
+    throw new Error("Medical Profile must be filled before confirming admission.");
+  }
+  const med = student.medicalProfile;
+  if (!med.walkingStatus?.trim() || !med.speechStatus?.trim()) {
+    throw new Error("Walking Status and Speech Status are required in Medical Information.");
+  }
+  if (med.hasAllergies && !med.allergyDetails?.trim()) {
+    throw new Error("Allergy Details are required since 'Has Allergies' is enabled.");
+  }
+  if (med.needsMedication && !med.medicationDetails?.trim()) {
+    throw new Error("Medication Details are required since 'Requires Daily Medication' is enabled.");
+  }
+  if (!med.healthIssues?.trim()) {
+    throw new Error("Health Issues is required in Medical Information (enter 'None' if not applicable).");
+  }
+  if (!med.specialAttention?.trim()) {
+    throw new Error("Special Attention Notes is required in Medical Information (enter 'None' if not applicable).");
+  }
+
+  // 4. Validate Birth Certificate Document (Mandatory upload & verification)
+  const birthCertType = await prisma.documentType.findFirst({
+    where: { name: { equals: "Birth Certificate", mode: "insensitive" }, isActive: true }
+  });
+  if (birthCertType) {
+    const doc = student.documents.find((d) => d.documentTypeId === birthCertType.id);
     if (!doc || (doc.status !== "VERIFIED" && doc.status !== "WAIVED")) {
-      throw new Error(`Required document "${dt.name}" is not verified or waived`);
+      throw new Error("Birth Certificate must be uploaded and verified before confirming admission.");
     }
   }
 
@@ -380,7 +516,26 @@ export async function getAdmissions(params: {
     const [items, total] = await Promise.all([
       prisma.admissionApplication.findMany({
         where,
-        include: { grade: true, academicYear: true, campus: true, student: { select: { fullNameEn: true, dateOfBirth: true, gender: true } }, registration: { select: { registrationNo: true } } },
+        include: {
+          grade: true,
+          academicYear: true,
+          campus: true,
+          student: {
+            select: {
+              fullNameEn: true,
+              dateOfBirth: true,
+              gender: true,
+              documents: {
+                where: {
+                  documentType: { isRequired: true },
+                  status: { in: ["NOT_RECEIVED", "UPLOADED", "REJECTED"] }
+                },
+                select: { id: true }
+              }
+            }
+          },
+          registration: { select: { registrationNo: true } }
+        },
         orderBy: { createdAt: "desc" },
         skip,
         take: pageSize,

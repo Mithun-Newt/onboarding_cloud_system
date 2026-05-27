@@ -164,13 +164,13 @@ export function StudentInfoTab({ admission }: Props) {
                 {errors.surnameTa && <p className="text-xs text-red-500">{(errors.surnameTa as any).message}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Date of Birth</Label>
+                <Label>Date of Birth *</Label>
                 <Input type="date" {...register("dateOfBirth")} />
                 {errors.dateOfBirth && <p className="text-xs text-red-500">{(errors.dateOfBirth as any).message}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label>Gender</Label>
+                <Label>Gender *</Label>
                 <Select value={watch("gender")} onValueChange={(v) => setValue("gender", v as any)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -181,7 +181,7 @@ export function StudentInfoTab({ admission }: Props) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Blood Group</Label>
+                <Label>Blood Group *</Label>
                 <Select value={watch("bloodGroup")} onValueChange={(v) => setValue("bloodGroup", v)}>
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
@@ -192,15 +192,15 @@ export function StudentInfoTab({ admission }: Props) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Religion</Label>
+                <Label>Religion *</Label>
                 <Input {...register("religion")} />
               </div>
               <div className="space-y-2">
-                <Label>Community</Label>
+                <Label>Community *</Label>
                 <Input {...register("community")} />
               </div>
               <div className="space-y-2">
-                <Label>Category</Label>
+                <Label>Category *</Label>
                 <Select value={watch("category")} onValueChange={(v) => setValue("category", v)}>
                   <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
@@ -211,11 +211,11 @@ export function StudentInfoTab({ admission }: Props) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Mother Tongue</Label>
+                <Label>Mother Tongue *</Label>
                 <Input {...register("motherTongue")} />
               </div>
               <div className="space-y-2">
-                <Label>Nationality</Label>
+                <Label>Nationality *</Label>
                 <Input {...register("nationality")} />
               </div>
               <div className="space-y-2">
@@ -227,7 +227,7 @@ export function StudentInfoTab({ admission }: Props) {
                 <Input {...register("aadhaarLast4")} maxLength={4} placeholder="1234" />
               </div>
               <div className="space-y-2 sm:col-span-3">
-                <Label>Address Line 1</Label>
+                <Label>Address Line 1 *</Label>
                 <Input {...register("address1")} />
               </div>
               <div className="space-y-2 sm:col-span-3">
@@ -235,15 +235,15 @@ export function StudentInfoTab({ admission }: Props) {
                 <Input {...register("address2")} />
               </div>
               <div className="space-y-2">
-                <Label>City</Label>
+                <Label>City *</Label>
                 <Input {...register("city")} />
               </div>
               <div className="space-y-2">
-                <Label>State</Label>
+                <Label>State *</Label>
                 <Input {...register("state")} />
               </div>
               <div className="space-y-2">
-                <Label>PIN Code</Label>
+                <Label>PIN Code *</Label>
                 <Input {...register("pinCode")} />
               </div>
               <div className="space-y-2">

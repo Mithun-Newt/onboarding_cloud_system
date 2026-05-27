@@ -115,24 +115,24 @@ export function ParentInfoTab({ admission }: { admission: any }) {
             <div>
               <h4 className="mb-3 text-sm font-semibold">Father</h4>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="space-y-1"><Label>Name</Label><Input {...register("fatherName")} /></div>
-                <div className="space-y-1"><Label>Mobile</Label><Input type="tel" {...register("fatherMobile")} /></div>
+                <div className="space-y-1"><Label>Name *</Label><Input {...register("fatherName")} /></div>
+                <div className="space-y-1"><Label>Mobile *</Label><Input type="tel" {...register("fatherMobile")} /></div>
                 <div className="space-y-1"><Label>Email</Label><Input type="email" {...register("fatherEmail")} /></div>
-                <div className="space-y-1"><Label>Education</Label><Input {...register("fatherEducation")} /></div>
-                <div className="space-y-1"><Label>Occupation</Label><Input {...register("fatherOccupation")} /></div>
-                <div className="space-y-1"><Label>Annual Income (₹)</Label><Input type="number" {...register("fatherIncome")} /></div>
+                <div className="space-y-1"><Label>Education *</Label><Input {...register("fatherEducation")} /></div>
+                <div className="space-y-1"><Label>Occupation *</Label><Input {...register("fatherOccupation")} /></div>
+                <div className="space-y-1"><Label>Annual Income (₹) *</Label><Input type="number" {...register("fatherIncome")} /></div>
               </div>
             </div>
             {/* Mother */}
             <div>
               <h4 className="mb-3 text-sm font-semibold">Mother</h4>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="space-y-1"><Label>Name</Label><Input {...register("motherName")} /></div>
-                <div className="space-y-1"><Label>Mobile</Label><Input type="tel" {...register("motherMobile")} /></div>
+                <div className="space-y-1"><Label>Name *</Label><Input {...register("motherName")} /></div>
+                <div className="space-y-1"><Label>Mobile *</Label><Input type="tel" {...register("motherMobile")} /></div>
                 <div className="space-y-1"><Label>Email</Label><Input type="email" {...register("motherEmail")} /></div>
-                <div className="space-y-1"><Label>Education</Label><Input {...register("motherEducation")} /></div>
-                <div className="space-y-1"><Label>Occupation</Label><Input {...register("motherOccupation")} /></div>
-                <div className="space-y-1"><Label>Annual Income (₹)</Label><Input type="number" {...register("motherIncome")} /></div>
+                <div className="space-y-1"><Label>Education *</Label><Input {...register("motherEducation")} /></div>
+                <div className="space-y-1"><Label>Occupation *</Label><Input {...register("motherOccupation")} /></div>
+                <div className="space-y-1"><Label>Annual Income (₹) *</Label><Input type="number" {...register("motherIncome")} /></div>
               </div>
             </div>
             {/* Guardian */}

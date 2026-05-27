@@ -27,7 +27,10 @@ export async function getDashboardStats(academicYearId?: string) {
       where: { ...whereYear, status: "CONFIRMED", confirmedAt: { gte: startToday, lte: endToday } },
     }),
     prisma.studentDocument.count({
-      where: { status: { in: ["NOT_RECEIVED", "UPLOADED"] } },
+      where: {
+        status: { in: ["NOT_RECEIVED", "UPLOADED", "REJECTED"] },
+        documentType: { isRequired: true },
+      },
     }),
     prisma.payment.count({
       where: { paymentStatus: { in: ["PENDING", "PARTIAL"] } },

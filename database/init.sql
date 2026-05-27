@@ -596,7 +596,7 @@ SELECT
 FROM student_documents sd
 JOIN students s      ON sd."studentId"       = s.id
 JOIN document_types dt ON sd."documentTypeId" = dt.id
-WHERE sd.status IN ('NOT_RECEIVED', 'UPLOADED');
+WHERE sd.status IN ('NOT_RECEIVED', 'UPLOADED', 'REJECTED');
 
 CREATE OR REPLACE VIEW v_source_wise_enquiries AS
 SELECT

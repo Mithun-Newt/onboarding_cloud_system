@@ -65,6 +65,10 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
   ]);
 
   const status = STATUS_BADGES[admission.status] ?? { label: admission.status, variant: "outline" };
+  const hasPendingDocs = admission.student.documents.some(
+    (d: any) => d.documentType.isRequired && ["NOT_RECEIVED", "UPLOADED", "REJECTED"].includes(d.status)
+  );
+  const badgeVariant = admission.status === "CONFIRMED" && hasPendingDocs ? "brown" : status.variant;
 
   const allTabs = [
     { value: "student", label: "Student", content: <StudentInfoTab admission={admission} /> },
@@ -119,7 +123,7 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
             {" · "}{admission.grade.name}{" · "}{admission.academicYear.label}
           </p>
         </div>
-        <Badge variant={status.variant} className="ml-2">{status.label}</Badge>
+        <Badge variant={badgeVariant} className="ml-2">{status.label}</Badge>
         <div className="ml-auto flex gap-2">
           {admission.status === "DRAFT" && isWriteAllowed && (
             <>

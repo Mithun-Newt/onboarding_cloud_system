@@ -57,7 +57,10 @@ export async function admissionSummaryReport(filter: ReportFilter) {
 
 export async function pendingDocumentsReport(filter: ReportFilter) {
   try {
-    const where: any = { status: { in: ["NOT_RECEIVED", "UPLOADED"] } };
+    const where: any = {
+      status: { in: ["NOT_RECEIVED", "UPLOADED", "REJECTED"] },
+      documentType: { isRequired: true }
+    };
 
     return await prisma.studentDocument.findMany({
       where,

@@ -85,8 +85,8 @@ export function MedicalTab({ admission }: { admission: any }) {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2"><Label>Walking Status</Label><Input {...register("walkingStatus")} placeholder="Normal / With support / etc." /></div>
-              <div className="space-y-2"><Label>Speech Status</Label><Input {...register("speechStatus")} placeholder="Clear / Delayed / etc." /></div>
+              <div className="space-y-2"><Label>Walking Status *</Label><Input {...register("walkingStatus")} placeholder="Normal / With support / etc." /></div>
+              <div className="space-y-2"><Label>Speech Status *</Label><Input {...register("speechStatus")} placeholder="Clear / Delayed / etc." /></div>
             </div>
             <div className="space-y-2">
               <label className="flex items-center gap-2">
@@ -98,7 +98,7 @@ export function MedicalTab({ admission }: { admission: any }) {
               )}
             </div>
             <div className="space-y-2">
-              <Label>Health Issues</Label>
+              <Label>Health Issues *</Label>
               <Textarea {...register("healthIssues")} rows={2} />
             </div>
             <div className="space-y-2">
@@ -111,7 +111,7 @@ export function MedicalTab({ admission }: { admission: any }) {
               )}
             </div>
             <div className="space-y-2">
-              <Label>Special Attention Notes</Label>
+              <Label>Special Attention Notes *</Label>
               <Textarea {...register("specialAttention")} rows={2} />
             </div>
             <div className="flex justify-end gap-2">

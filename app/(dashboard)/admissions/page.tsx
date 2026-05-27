@@ -181,6 +181,8 @@ export default async function AdmissionsPage({ searchParams }: { searchParams: S
           <tbody>
             {result.items.map((a) => {
               const status = STATUS_BADGES[a.status] ?? { label: a.status, variant: "outline" };
+              const hasPendingDocs = (a.student as any).documents && (a.student as any).documents.length > 0;
+              const badgeVariant = a.status === "CONFIRMED" && hasPendingDocs ? "brown" : status.variant;
               return (
                 <tr key={a.id} className="border-b last:border-0">
                   <td className="px-4 py-3 font-mono text-xs font-medium text-green-700">
@@ -192,7 +194,7 @@ export default async function AdmissionsPage({ searchParams }: { searchParams: S
                   <td className="px-4 py-3 font-mono text-xs text-blue-600">{a.registration.registrationNo}</td>
                   <td className="px-4 py-3">{formatDate(a.createdAt)}</td>
                   <td className="px-4 py-3">
-                    <Badge variant={status.variant}>{status.label}</Badge>
+                    <Badge variant={badgeVariant}>{status.label}</Badge>
                   </td>
                   <td className="px-4 py-3">
                     <Button size="sm" variant="ghost" asChild>
