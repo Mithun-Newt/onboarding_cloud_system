@@ -20,7 +20,6 @@ export default async function EditRegistrationPage({ params }: { params: { id: s
   }
 
 
-  const { firstName, middleName, lastName } = splitFullName(reg.studentName);
   const eligibleGrade = getEligibleGradeName(reg.dateOfBirth, reg.academicYear.startYear);
   const isRelaxed = reg.grade.name !== eligibleGrade;
 
@@ -44,9 +43,7 @@ export default async function EditRegistrationPage({ params }: { params: { id: s
           academicYearId: reg.academicYearId,
           campusId: reg.campusId,
           gradeId: reg.gradeId,
-          firstName,
-          middleName,
-          lastName,
+          givenName: reg.studentName,
           ageRelaxation: isRelaxed,
           dateOfBirth: format(new Date(reg.dateOfBirth), "yyyy-MM-dd"),
           gender: reg.gender,

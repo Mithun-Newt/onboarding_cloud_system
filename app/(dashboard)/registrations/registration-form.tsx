@@ -172,22 +172,10 @@ export function RegistrationForm({
       <Card>
         <CardHeader><CardTitle className="text-base">Student Information</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="space-y-2">
-            <Label>First Name *</Label>
-            <Input {...register("firstName")} />
-            {errors.firstName && <p className="text-xs text-red-500">{errors.firstName.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Middle Name (Optional)</Label>
-            <Input {...register("middleName")} />
-            {errors.middleName && <p className="text-xs text-red-500">{errors.middleName.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Last Name *</Label>
-            <Input {...register("lastName")} />
-            {errors.lastName && <p className="text-xs text-red-500">{errors.lastName.message}</p>}
+          <div className="space-y-2 sm:col-span-3">
+            <Label>Given Name *</Label>
+            <Input {...register("givenName")} />
+            {errors.givenName && <p className="text-xs text-red-500">{errors.givenName.message}</p>}
           </div>
 
           <div className="space-y-2">

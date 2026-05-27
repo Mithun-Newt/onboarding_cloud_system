@@ -41,8 +41,7 @@ export async function createRegistration(formData: unknown) {
       throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
     }
 
-    const studentNameCombined = `${data.firstName} ${data.middleName || ""}`.trim() + ` ${data.lastName}`;
-    const normalizedStudentName = studentNameCombined.replace(/\s+/g, ' ').trim();
+    const normalizedStudentName = data.givenName.trim();
 
     const yearCode = getAcademicYearCode(academicYear.label);
     const seq = await generateSequenceNumber("REGISTRATION", yearCode);
@@ -129,8 +128,7 @@ export async function updateRegistration(id: string, formData: unknown) {
       throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
     }
 
-    const studentNameCombined = `${data.firstName} ${data.middleName || ""}`.trim() + ` ${data.lastName}`;
-    const normalizedStudentName = studentNameCombined.replace(/\s+/g, ' ').trim();
+    const normalizedStudentName = data.givenName.trim();
 
     const registration = await prisma.registration.update({
       where: { id },

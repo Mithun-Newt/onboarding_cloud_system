@@ -2,13 +2,10 @@ import { z } from "zod";
 
 export const admissionStudentSchema = z
   .object({
-    firstName: z.string().min(1, "First name is required"),
-    middleName: z.string().optional(),
-    lastName: z.string().min(1, "Last name is required"),
-    fullNameEn: z.string().optional(),
-    fullNameTa: z.string().optional(),
-    givenName: z.string().optional(),
-    surname: z.string().optional(),
+    givenName: z.string().min(1, "Given name is required"),
+    surname: z.string().min(1, "Surname/Family name is required"),
+    givenNameTa: z.string().min(1, "Given name (Tamil) is required"),
+    surnameTa: z.string().min(1, "Surname/Family name (Tamil) is required"),
     dateOfBirth: z.string().min(1, "Date of birth is required"),
     gender: z.enum(["MALE", "FEMALE", "OTHER"]),
     bloodGroup: z.string().optional(),

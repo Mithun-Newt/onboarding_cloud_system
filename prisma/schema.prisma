@@ -242,6 +242,8 @@ model Student {
   fullNameTa        String?
   givenName         String?
   surname           String?
+  givenNameTa       String?
+  surnameTa         String?
   dateOfBirth       DateTime
   gender            Gender
   bloodGroup        String?

@@ -29,6 +29,11 @@ export async function createAdmission(registrationId: string) {
     const student = await prisma.student.create({
       data: {
         fullNameEn: reg.studentName,
+        givenName: reg.studentName,
+        surname: null,
+        givenNameTa: null,
+        surnameTa: null,
+        fullNameTa: null,
         dateOfBirth: reg.dateOfBirth,
         gender: reg.gender,
         address1: reg.address1,
@@ -103,19 +108,18 @@ export async function updateAdmissionStudent(admissionId: string, data: any) {
     });
     if (!admission) throw new Error("Admission not found");
 
-    let normalizedFullName = data.fullNameEn;
-    if (data.firstName && data.lastName) {
-      const fullNameEn = `${data.firstName} ${data.middleName || ""}`.trim() + ` ${data.lastName}`;
-      normalizedFullName = fullNameEn.replace(/\s+/g, ' ').trim();
-    }
+    const fullNameEn = `${data.givenName} ${data.surname || ""}`.replace(/\s+/g, ' ').trim();
+    const fullNameTa = `${data.givenNameTa} ${data.surnameTa || ""}`.replace(/\s+/g, ' ').trim();
 
     await prisma.student.update({
       where: { id: admission.studentId },
       data: {
-        fullNameEn: normalizedFullName,
-        fullNameTa: data.fullNameTa,
+        fullNameEn,
+        fullNameTa,
         givenName: data.givenName,
         surname: data.surname,
+        givenNameTa: data.givenNameTa,
+        surnameTa: data.surnameTa,
 
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
         gender: data.gender,
@@ -441,4 +445,20 @@ export async function saveTransportRequest(
     console.error("SAVE_TRANSPORT_REQUEST_ERROR:", error);
     throw error instanceof Error ? error : new Error("Failed to save transport details");
   }
+}
+
+export async function transliterateEnglishToTamil(text: string): Promise<string> {
+  if (!text || !text.trim()) return "";
+  try {
+    const url = `https://inputtools.google.com/request?text=${encodeURIComponent(text.trim())}&itc=ta-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8&app=onboarding`;
+    const response = await fetch(url);
+    if (!response.ok) return "";
+    const data = await response.json();
+    if (data[0] === "SUCCESS" && data[1]?.[0]?.[1]?.[0]) {
+      return data[1][0][1][0];
+    }
+  } catch (error) {
+    console.error("TRANSLITERATION_ERROR:", error);
+  }
+  return "";
 }

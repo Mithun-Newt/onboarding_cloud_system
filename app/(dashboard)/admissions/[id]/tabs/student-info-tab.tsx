@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { admissionStudentSchema } from "@/lib/validations/admission";
-import { updateAdmissionStudent } from "@/features/admissions/actions";
+import { updateAdmissionStudent, transliterateEnglishToTamil } from "@/features/admissions/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,6 @@ import { Loader2, Pencil, Check } from "lucide-react";
 import { format } from "date-fns";
 
 import { useSession } from "next-auth/react";
-import { splitFullName } from "@/lib/utils";
 
 interface Props {
   admission: any;
@@ -31,18 +30,13 @@ export function StudentInfoTab({ admission }: Props) {
   const [loading, setLoading] = useState(false);
   const student = admission.student;
 
-  const { firstName, middleName, lastName } = splitFullName(student.fullNameEn);
-
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
     resolver: zodResolver(admissionStudentSchema),
     defaultValues: {
-      firstName,
-      middleName,
-      lastName,
-      fullNameEn: student.fullNameEn,
-      fullNameTa: student.fullNameTa ?? "",
       givenName: student.givenName ?? "",
       surname: student.surname ?? "",
+      givenNameTa: student.givenNameTa ?? "",
+      surnameTa: student.surnameTa ?? "",
       dateOfBirth: student.dateOfBirth ? format(new Date(student.dateOfBirth), "yyyy-MM-dd") : "",
       gender: student.gender,
       bloodGroup: student.bloodGroup ?? "",
@@ -65,6 +59,18 @@ export function StudentInfoTab({ admission }: Props) {
   });
 
   const referredStudentTypeValue = watch("referredStudentType") ?? "NEW_STUDENT";
+
+  const handleTransliterate = async (field: "givenName" | "surname", englishValue: string) => {
+    if (!englishValue) return;
+    try {
+      const tamilValue = await transliterateEnglishToTamil(englishValue);
+      if (tamilValue) {
+        setValue(field === "givenName" ? "givenNameTa" : "surnameTa", tamilValue, { shouldValidate: true });
+      }
+    } catch (error) {
+      console.error("Transliteration failed", error);
+    }
+  };
 
 
   async function onSubmit(data: any) {
@@ -95,10 +101,10 @@ export function StudentInfoTab({ admission }: Props) {
         {!editing ? (
           <dl className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-3">
             {[
-              ["Full Name (English)", student.fullNameEn],
-              ["Full Name (Tamil)", student.fullNameTa ?? "-"],
-              ["Given Name", student.givenName ?? "-"],
-              ["Surname", student.surname ?? "-"],
+              ["Given Name (English)", student.givenName ?? "-"],
+              ["Surname/Family Name (English)", student.surname ?? "-"],
+              ["Given Name (Tamil)", student.givenNameTa ?? "-"],
+              ["Surname/Family Name (Tamil)", student.surnameTa ?? "-"],
               ["Date of Birth", student.dateOfBirth ? format(new Date(student.dateOfBirth), "dd/MM/yyyy") : "-"],
               ["Gender", student.gender],
               ["Blood Group", student.bloodGroup ?? "-"],
@@ -126,31 +132,36 @@ export function StudentInfoTab({ admission }: Props) {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label>First Name *</Label>
-                <Input {...register("firstName")} />
-                {errors.firstName && <p className="text-xs text-red-500">{(errors.firstName as any).message}</p>}
+                <Label>Given Name (English) *</Label>
+                <Input 
+                  {...register("givenName")} 
+                  onBlur={(e) => {
+                    register("givenName").onBlur(e);
+                    handleTransliterate("givenName", e.target.value);
+                  }}
+                />
+                {errors.givenName && <p className="text-xs text-red-500">{(errors.givenName as any).message}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Middle Name (Optional)</Label>
-                <Input {...register("middleName")} />
-                {errors.middleName && <p className="text-xs text-red-500">{(errors.middleName as any).message}</p>}
+                <Label>Surname/Family Name (English) *</Label>
+                <Input 
+                  {...register("surname")} 
+                  onBlur={(e) => {
+                    register("surname").onBlur(e);
+                    handleTransliterate("surname", e.target.value);
+                  }}
+                />
+                {errors.surname && <p className="text-xs text-red-500">{(errors.surname as any).message}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Last Name *</Label>
-                <Input {...register("lastName")} />
-                {errors.lastName && <p className="text-xs text-red-500">{(errors.lastName as any).message}</p>}
+                <Label>Given Name (Tamil) *</Label>
+                <Input {...register("givenNameTa")} />
+                {errors.givenNameTa && <p className="text-xs text-red-500">{(errors.givenNameTa as any).message}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Full Name (Tamil)</Label>
-                <Input {...register("fullNameTa")} />
-              </div>
-              <div className="space-y-2">
-                <Label>Given Name</Label>
-                <Input {...register("givenName")} />
-              </div>
-              <div className="space-y-2">
-                <Label>Surname</Label>
-                <Input {...register("surname")} />
+                <Label>Surname/Family Name (Tamil) *</Label>
+                <Input {...register("surnameTa")} />
+                {errors.surnameTa && <p className="text-xs text-red-500">{(errors.surnameTa as any).message}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Date of Birth</Label>
