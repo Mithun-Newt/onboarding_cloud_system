@@ -11,17 +11,24 @@ export default async function PrintRegistrationPage({ params }: { params: { id: 
   if (!reg) notFound();
 
   return (
-    <div className="mx-auto max-w-2xl p-8 print:p-0">
+    <div className="mx-auto max-w-2xl p-8 print:p-0 print:max-w-none print:w-full print:m-0">
       <div className="no-print mb-6 flex gap-2">
         <PrintButton />
       </div>
 
       {/* Printable content */}
-      <div className="rounded-lg border bg-white p-8">
-        <div className="mb-6 border-b pb-4 text-center">
-          <h1 className="text-2xl font-bold">{process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}</h1>
-          <p className="text-lg font-semibold text-blue-700 mt-1">Registration Acknowledgement</p>
-          <p className="text-sm text-gray-500">{reg.campus.name} · {reg.academicYear.label}</p>
+      <div className="rounded-lg border bg-white p-8 print:border-none print:p-0 print:rounded-none print:shadow-none">
+        <div className="mb-6 border-b pb-4 flex items-center justify-center gap-4">
+          <img
+            src="/logo/appu-arivaalayem-logo.png"
+            alt="School Logo"
+            className="h-16 w-16 object-contain"
+          />
+          <div className="text-left">
+            <h1 className="text-2xl font-bold">{process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}</h1>
+            <p className="text-lg font-semibold text-blue-700 mt-0.5">Registration Acknowledgement</p>
+            <p className="text-sm text-gray-500">{reg.campus.name} · {reg.academicYear.label}</p>
+          </div>
         </div>
 
         <div className="mb-4 rounded-lg bg-blue-50 p-4 text-center">
@@ -50,6 +57,17 @@ export default async function PrintRegistrationPage({ params }: { params: { id: 
             </div>
           ))}
         </dl>
+
+        <div className="mt-12 grid grid-cols-2 gap-12 pt-8 border-t border-dashed">
+          <div className="text-center">
+            <div className="border-b border-gray-400 w-48 mx-auto h-8"></div>
+            <p className="mt-2 text-xs font-semibold text-gray-600">Parent's Signature</p>
+          </div>
+          <div className="text-center">
+            <div className="border-b border-gray-400 w-48 mx-auto h-8"></div>
+            <p className="mt-2 text-xs font-semibold text-gray-600">Teacher's Signature</p>
+          </div>
+        </div>
 
         <div className="mt-8 text-xs text-gray-400 text-center">
           <p>This is a computer-generated acknowledgement. Please retain this for your records.</p>

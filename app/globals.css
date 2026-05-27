@@ -37,11 +37,33 @@
 }
 
 @media print {
+  @page {
+    margin: 0;
+  }
+  body {
+    margin: 0 !important;
+    padding: 1.5cm !important;
+    background-color: #ffffff !important;
+  }
   .no-print {
     display: none !important;
   }
   .print-only {
     display: block !important;
+  }
+  aside,
+  header {
+    display: none !important;
+  }
+  .ml-64 {
+    margin-left: 0 !important;
+  }
+  .mt-16 {
+    margin-top: 0 !important;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
   }
 }
 
