@@ -145,6 +145,63 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
+      {/* Cohort Strength Flow Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center justify-between">
+            <span>Grade Cohort Strength Flow</span>
+            <span className="text-xs font-normal text-muted-foreground">Flow chart from {stats.prevYearLabel} to {stats.currentYearLabel}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto rounded-lg border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50 border-b text-left text-xs font-semibold text-slate-700">
+                  <th className="px-4 py-3 font-semibold">Classes / Cohort</th>
+                  <th className="px-4 py-3 font-semibold text-right bg-blue-50/40 text-blue-900">Strength in {stats.prevYearLabel}</th>
+                  <th className="px-4 py-3 font-semibold text-right bg-red-50/40 text-red-900">TC Exits</th>
+                  <th className="px-4 py-3 font-semibold text-right bg-amber-50/40 text-amber-900">Actual Strength</th>
+                  <th className="px-4 py-3 font-semibold text-right bg-green-50/40 text-green-900">New Admission</th>
+                  <th className="px-4 py-3 font-semibold text-right bg-blue-50/80 text-blue-950 font-bold border-l">Strength in {stats.currentYearLabel}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.cohortStats.map((item: any) => (
+                  <tr key={item.label} className="border-b hover:bg-slate-50/50 transition-colors last:border-0">
+                    <td className="px-4 py-3 font-medium text-slate-900">{item.label}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-blue-700 bg-blue-50/10">{item.prevStrength}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-red-600 bg-red-50/10">{item.tc > 0 ? `-${item.tc}` : 0}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-amber-700 bg-amber-50/10">{item.actualStrength}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-green-700 bg-green-50/10">{item.newAdmission > 0 ? `+${item.newAdmission}` : 0}</td>
+                    <td className="px-4 py-3 text-right font-bold text-slate-900 bg-blue-50/20 border-l">{item.currentStrength}</td>
+                  </tr>
+                ))}
+                {/* Totals Row */}
+                <tr className="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-200">
+                  <td className="px-4 py-3 text-left">Total</td>
+                  <td className="px-4 py-3 text-right text-blue-800">
+                    {stats.cohortStats.reduce((sum: number, item: any) => sum + item.prevStrength, 0)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-red-700">
+                    -{stats.cohortStats.reduce((sum: number, item: any) => sum + item.tc, 0)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-amber-800">
+                    {stats.cohortStats.reduce((sum: number, item: any) => sum + item.actualStrength, 0)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-green-800">
+                    +{stats.cohortStats.reduce((sum: number, item: any) => sum + item.newAdmission, 0)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-slate-950 font-extrabold border-l">
+                    {stats.cohortStats.reduce((sum: number, item: any) => sum + item.currentStrength, 0)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Source-wise enquiries */}
       <Card>
         <CardHeader>

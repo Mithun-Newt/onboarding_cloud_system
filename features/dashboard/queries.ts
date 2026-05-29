@@ -93,6 +93,107 @@ export async function getDashboardStats(academicYearId?: string) {
     return { source: src?.name ?? "Not Specified", count: s._count.id };
   });
 
+  // Calculate Cohort Strength Flow
+  const currentYear = academicYearId
+    ? await prisma.academicYear.findUnique({ where: { id: academicYearId } })
+    : await prisma.academicYear.findFirst({ where: { isCurrent: true } });
+
+  let prevYear = null;
+  if (currentYear) {
+    prevYear = await prisma.academicYear.findFirst({
+      where: { startYear: currentYear.startYear - 1 },
+    });
+  }
+
+  const currentYearAdmissions = await prisma.admissionApplication.groupBy({
+    by: ["gradeId"],
+    where: {
+      academicYearId: currentYear?.id || "",
+      status: "CONFIRMED",
+    },
+    _count: { id: true },
+  });
+
+  const prevYearConfirmed = await prisma.admissionApplication.groupBy({
+    by: ["gradeId"],
+    where: {
+      academicYearId: prevYear?.id || "",
+      status: "CONFIRMED",
+    },
+    _count: { id: true },
+  });
+
+  const prevYearTC = await prisma.admissionApplication.groupBy({
+    by: ["gradeId"],
+    where: {
+      academicYearId: prevYear?.id || "",
+      status: "TC_ISSUED",
+    },
+    _count: { id: true },
+  });
+
+  const currentMap = currentYearAdmissions.reduce((acc, a) => {
+    acc[a.gradeId] = a._count.id;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const prevConfirmedMap = prevYearConfirmed.reduce((acc, a) => {
+    acc[a.gradeId] = a._count.id;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const prevTCMap = prevYearTC.reduce((acc, a) => {
+    acc[a.gradeId] = a._count.id;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const cohortStats: any[] = [];
+  
+  // 1. Direct Entry to Pre-KG
+  const preKgGrade = grades.find((g) => g.name === "Pre-KG");
+  const preKgCount = preKgGrade ? (currentMap[preKgGrade.id] ?? 0) : 0;
+  cohortStats.push({
+    label: "New Pre-KG",
+    prevStrength: 0,
+    tc: 0,
+    actualStrength: 0,
+    newAdmission: preKgCount,
+    currentStrength: preKgCount,
+  });
+
+  // Promote transitions
+  for (let i = 0; i < grades.length; i++) {
+    const sourceGrade = grades[i];
+    const targetGrade = grades[i + 1];
+
+    const prevConfirmed = prevConfirmedMap[sourceGrade.id] ?? 0;
+    const prevTC = prevTCMap[sourceGrade.id] ?? 0;
+    const prevStrength = prevConfirmed + prevTC;
+    const actualStrength = prevConfirmed;
+
+    if (targetGrade) {
+      const currentStrength = currentMap[targetGrade.id] ?? 0;
+      const newAdmission = Math.max(0, currentStrength - actualStrength);
+      cohortStats.push({
+        label: `${sourceGrade.name} to ${targetGrade.name}`,
+        prevStrength,
+        tc: prevTC,
+        actualStrength,
+        newAdmission,
+        currentStrength,
+      });
+    } else {
+      cohortStats.push({
+        label: `${sourceGrade.name} to Outgoing`,
+        prevStrength,
+        tc: prevTC,
+        actualStrength,
+        newAdmission: 0,
+        currentStrength: 0,
+      });
+    }
+  }
+
   return {
     todayRegistrations,
     todayConfirmed,
@@ -103,6 +204,9 @@ export async function getDashboardStats(academicYearId?: string) {
     gradeStats,
     seatInfo,
     sourceStats,
+    cohortStats,
+    prevYearLabel: prevYear?.label ?? "Previous Year",
+    currentYearLabel: currentYear?.label ?? "Current Year",
   };
 }
 

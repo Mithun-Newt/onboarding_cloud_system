@@ -16,6 +16,7 @@ import { PaymentsTab } from "./tabs/payments-tab";
 import { TransportTab } from "./tabs/transport-tab";
 import { ConfirmAdmissionButton } from "./confirm-button";
 import { CancelAdmissionButton } from "./cancel-button";
+import { IssueTCButton } from "./tc-button";
 import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
   DRAFT: { label: "Draft", variant: "warning" },
   CONFIRMED: { label: "Confirmed", variant: "success" },
   CANCELLED: { label: "Cancelled", variant: "destructive" },
+  TC_ISSUED: { label: "TC Issued", variant: "destructive" },
 };
 
 export default async function AdmissionDetailPage({ params }: { params: { id: string } }) {
@@ -47,6 +49,7 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
       transportReq: { include: { route: true, stop: true } },
       payments: { include: { collectedBy: { select: { fullName: true } } }, orderBy: { createdAt: "desc" } },
       statusHistory: { orderBy: { changedAt: "asc" } },
+      tc: true,
     },
   });
 
@@ -131,11 +134,31 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
               <ConfirmAdmissionButton admissionId={admission.id} />
             </>
           )}
+          {admission.status === "CONFIRMED" && isWriteAllowed && (
+            <IssueTCButton admission={admission} />
+          )}
           <Button size="sm" variant="outline" asChild>
             <Link href={`/admissions/${admission.id}/print`}><Printer className="mr-1 h-4 w-4" />Print</Link>
           </Button>
         </div>
       </div>
+
+      {admission.status === "TC_ISSUED" && admission.tc && (
+        <Card className="border-red-200 bg-red-50 text-red-900 no-print">
+          <CardContent className="p-4">
+            <h3 className="font-bold text-sm text-red-800">Transfer Certificate (TC) Issued</h3>
+            <p className="text-xs text-red-700 mt-0.5">
+              This student has exited the school. Their strength contribution has been removed from the current academic year.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-1.5 gap-x-4 mt-3 text-xs text-red-800 border-t border-red-200/50 pt-2.5">
+              <div><strong>TC Number:</strong> {admission.tc.tcNumber}</div>
+              <div><strong>Date of Exit:</strong> {formatDate(admission.tc.tcDate)}</div>
+              <div><strong>Destination School:</strong> {admission.tc.destinationSchool}</div>
+              <div className="sm:col-span-3"><strong>Reason for Exit:</strong> {admission.tc.reason}</div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tabs */}
       <Tabs defaultValue={defaultTab}>

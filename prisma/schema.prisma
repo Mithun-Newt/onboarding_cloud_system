@@ -29,6 +29,7 @@ enum AdmissionStatus {
   DRAFT
   CONFIRMED
   CANCELLED
+  TC_ISSUED
 }
 
 enum DocumentStatus {
@@ -363,6 +364,7 @@ model AdmissionApplication {
   prevSchool    PreviousSchoolDetail?
   transportReq  TransportRequest?
   payments      Payment[]
+  tc            TransferCertificate?
 
   @@map("admission_applications")
 }
@@ -379,6 +381,21 @@ model AdmissionStatusHistory {
   admission AdmissionApplication @relation(fields: [admissionId], references: [id])
 
   @@map("admission_status_history")
+}
+
+model TransferCertificate {
+  id                String   @id @default(cuid())
+  admissionId       String   @unique
+  tcNumber          String   @unique
+  tcDate            DateTime @default(now())
+  destinationSchool String
+  reason            String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  admission AdmissionApplication @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+
+  @@map("transfer_certificates")
 }
 
 // ─── Previous School ──────────────────────────────────────────────────────────
