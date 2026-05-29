@@ -20,6 +20,56 @@ interface Props {
   admission: any;
 }
 
+const TAMIL_NADU_COMMUNITIES = [
+  { name: "Adi Dravidar", category: "SC" },
+  { name: "Adi Karnataka", category: "SC" },
+  { name: "Agamudayar / Tholu Vellala", category: "BC" },
+  { name: "Ambalakarar", category: "MBC" },
+  { name: "Arundhathiyar", category: "SC" },
+  { name: "Boyar / Oddar", category: "MBC" },
+  { name: "Brahmin (Iyer/Iyengar)", category: "OC" },
+  { name: "Chakkiliyan", category: "SC" },
+  { name: "Chettiar (General)", category: "OC" },
+  { name: "Devangar", category: "BC" },
+  { name: "Devendrakula Velalar / Pallar", category: "SC" },
+  { name: "Gounder / Kongu Vellalar", category: "BC" },
+  { name: "Irular", category: "ST" },
+  { name: "Isai Vellalar", category: "MBC" },
+  { name: "Kadar", category: "ST" },
+  { name: "Kallar", category: "MBC" },
+  { name: "Kattunayakan", category: "ST" },
+  { name: "Kulalar / Kuyavar / Kusavan", category: "MBC" },
+  { name: "Kurumba", category: "MBC" },
+  { name: "Kurumans", category: "ST" },
+  { name: "Labbai", category: "BCM" },
+  { name: "Mapilla", category: "BCM" },
+  { name: "Marakayar", category: "BCM" },
+  { name: "Maravar", category: "MBC" },
+  { name: "Maruthuvar / Navithan", category: "MBC" },
+  { name: "Mudaliar (General)", category: "OC" },
+  { name: "Muthuraja / Muthuriyar", category: "MBC" },
+  { name: "Nadar", category: "BC" },
+  { name: "Naicker / Nayakar", category: "BC" },
+  { name: "Parayar / Sambavar", category: "SC" },
+  { name: "Parkavakulam (Udayar/Moopanar)", category: "BC" },
+  { name: "Parvatharajakulam / Sembadavar / Fishermen", category: "MBC" },
+  { name: "Pillai (General)", category: "OC" },
+  { name: "Rowthar", category: "BCM" },
+  { name: "Sadhu Chetty", category: "BC" },
+  { name: "Sengunthar / Kaikolar", category: "BC" },
+  { name: "Sourashtra", category: "BC" },
+  { name: "Sozhia Vellalar", category: "BC" },
+  { name: "Toda / Kota", category: "ST" },
+  { name: "Valayar", category: "MBC" },
+  { name: "Valluvan", category: "SC" },
+  { name: "Vaniya Chettiar", category: "BC" },
+  { name: "Vanniyar / Vanniyakula Kshatriya / Padayachi", category: "MBC" },
+  { name: "Vellalar (General)", category: "OC" },
+  { name: "Vettuva Gounder", category: "MBC" },
+  { name: "Yadava / Yadavar", category: "BC" },
+  { name: "Other (Not Listed)", category: "OC" }
+];
+
 export function StudentInfoTab({ admission }: Props) {
   const { data: session } = useSession();
   const roles = (session?.user as any)?.roles || [];
@@ -197,7 +247,24 @@ export function StudentInfoTab({ admission }: Props) {
               </div>
               <div className="space-y-2">
                 <Label>Community *</Label>
-                <Input {...register("community")} />
+                <Select
+                  value={watch("community")}
+                  onValueChange={(v) => {
+                    setValue("community", v);
+                    const matching = TAMIL_NADU_COMMUNITIES.find((c) => c.name === v);
+                    if (matching && matching.category) {
+                      setValue("category", matching.category);
+                    }
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select community" /></SelectTrigger>
+                  <SelectContent className="max-h-[300px] overflow-y-auto">
+                    {TAMIL_NADU_COMMUNITIES.map((c) => (
+                      <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.community && <p className="text-xs text-red-500">{(errors.community as any).message}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Category *</Label>
