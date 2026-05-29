@@ -393,7 +393,15 @@ export function RegistrationForm({
 
           <div className="space-y-2 sm:col-span-2">
             <Label>Staff Remarks</Label>
-            <Textarea {...register("staffRemarks")} rows={2} />
+            <Select value={watch("staffRemarks") || "NONE"} onValueChange={(v) => setValue("staffRemarks", v)}>
+              <SelectTrigger><SelectValue placeholder="Select remark status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="NONE">Select Remarks / Under Review</SelectItem>
+                <SelectItem value="ELIGIBLE">Eligible</SelectItem>
+                <SelectItem value="NOT_ELIGIBLE">Not Eligible</SelectItem>
+                <SelectItem value="WAITING">Waiting</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

@@ -98,7 +98,18 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
                     <td className="px-4 py-3">{r.fatherMobile || r.motherMobile || r.primaryContact || "-"}</td>
                     <td className="px-4 py-3">{formatDate(r.registrationDate)}</td>
                     <td className="px-4 py-3">
-                      <Badge variant={status.variant}>{status.label}</Badge>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge variant={status.variant}>{status.label}</Badge>
+                        {r.staffRemarks === "ELIGIBLE" && (
+                          <Badge variant="success">Eligible</Badge>
+                        )}
+                        {r.staffRemarks === "NOT_ELIGIBLE" && (
+                          <Badge variant="destructive">Not Eligible</Badge>
+                        )}
+                        {r.staffRemarks === "WAITING" && (
+                          <Badge variant="warning">Waiting</Badge>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">

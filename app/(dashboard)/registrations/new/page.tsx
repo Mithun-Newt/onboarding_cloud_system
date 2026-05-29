@@ -25,6 +25,7 @@ export default async function NewRegistrationPage() {
         defaults={{
           academicYearId: currentYear?.id,
           campusId: defaultCampus?.id,
+          staffRemarks: "NONE",
         }}
       />
     </div>

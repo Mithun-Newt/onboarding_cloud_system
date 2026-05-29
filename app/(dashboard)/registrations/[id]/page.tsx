@@ -66,7 +66,18 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
     ["Enquiry Source", reg.enquirySource?.name ?? "-"],
     ["Special Support", reg.specialSupport ? "Yes" : "No"],
     ["Special Details", reg.specialDetails ?? "-"],
-    ["Staff Remarks", reg.staffRemarks ?? "-"],
+    [
+      "Staff Remarks",
+      !reg.staffRemarks || reg.staffRemarks === "NONE"
+        ? "-"
+        : reg.staffRemarks === "ELIGIBLE"
+        ? "Eligible"
+        : reg.staffRemarks === "NOT_ELIGIBLE"
+        ? "Not Eligible"
+        : reg.staffRemarks === "WAITING"
+        ? "Waiting"
+        : reg.staffRemarks
+    ],
     ["Connection Type", reg.referredStudentType === "SIBLING" ? "Sibling" : reg.referredStudentType === "RELATIVE" ? "Relative" : "New Student (No Connection)"],
     ...(reg.referredStudentType === "SIBLING" || reg.referredStudentType === "RELATIVE" ? [
       ["Referred Student Name", reg.referredStudentName ?? "-"],
@@ -105,7 +116,7 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
           {reg.status === "REGISTERED" && isWriteAllowed && (
             <>
               <CancelRegistrationButton registrationId={reg.id} />
-              <StartAdmissionButton registrationId={reg.id} studentName={reg.studentName} />
+              <StartAdmissionButton registrationId={reg.id} studentName={reg.studentName} staffRemarks={reg.staffRemarks} />
             </>
           )}
           {reg.status === "ADMISSION_STARTED" && latestAdmission && (

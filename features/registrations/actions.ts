@@ -73,7 +73,7 @@ export async function createRegistration(formData: unknown) {
         enquirySourceId: data.enquirySourceId || null,
         specialSupport: data.specialSupport,
         specialDetails: data.specialDetails,
-        staffRemarks: data.staffRemarks,
+        staffRemarks: data.staffRemarks === "NONE" ? null : data.staffRemarks,
       },
     });
 
@@ -156,7 +156,7 @@ export async function updateRegistration(id: string, formData: unknown) {
         enquirySourceId: data.enquirySourceId || null,
         specialSupport: data.specialSupport,
         specialDetails: data.specialDetails,
-        staffRemarks: data.staffRemarks,
+        staffRemarks: data.staffRemarks === "NONE" ? null : data.staffRemarks,
       },
     });
 

@@ -64,7 +64,7 @@ export default async function EditRegistrationPage({ params }: { params: { id: s
           enquirySourceId: reg.enquirySourceId ?? "",
           specialSupport: reg.specialSupport,
           specialDetails: reg.specialDetails ?? "",
-          staffRemarks: reg.staffRemarks ?? "",
+          staffRemarks: reg.staffRemarks || "NONE",
         }}
       />
     </div>
