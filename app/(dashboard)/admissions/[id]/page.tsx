@@ -110,7 +110,7 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 no-print">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/admissions"><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
@@ -139,7 +139,7 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
 
       {/* Tabs */}
       <Tabs defaultValue={defaultTab}>
-        <TabsList className="flex-wrap h-auto gap-1">
+        <TabsList className="flex-wrap h-auto gap-1 no-print">
           {enabledTabs.map((t) => (
             <TabsTrigger key={t.value} value={t.value}>
               {t.label}

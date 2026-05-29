@@ -51,6 +51,7 @@ export async function recordPayment(admissionId: string, data: RecordPaymentInpu
 }
 
 interface CollectPaymentInput {
+  amount?: number;
   paymentMode: string;
   paymentDate?: string;
   chequeNo?: string;
@@ -91,6 +92,7 @@ export async function collectPayment(paymentId: string, data: CollectPaymentInpu
   const updatedPayment = await prisma.payment.update({
     where: { id: paymentId },
     data: {
+      amount: data.amount !== undefined ? data.amount : undefined,
       receiptNo,
       paymentMode: data.paymentMode as PaymentMode,
       paymentStatus,

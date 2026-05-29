@@ -123,13 +123,12 @@ export async function createAdmission(registrationId: string) {
       });
     }
 
-    // Create default grade-based confirmation fee payment record (PENDING status)
-    const confirmationFeeAmount = getConfirmationFeeForGrade(reg.grade.name);
+    // Create default confirmation fee payment record (PENDING status, initialized with 0 to allow entering manually)
     await prisma.payment.create({
       data: {
         admissionId: admission.id,
         feeType: "Confirmation Fee",
-        amount: confirmationFeeAmount,
+        amount: 0,
         paymentMode: "CASH",
         paymentStatus: "PENDING",
       },

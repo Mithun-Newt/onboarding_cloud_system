@@ -12,7 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Check, X, Wallet, Info } from "lucide-react";
+import { Loader2, Plus, Trash2, Check, X, Wallet, Info, Printer } from "lucide-react";
+import Link from "next/link";
 
 const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
   PENDING: { label: "Pending", variant: "warning" },
@@ -27,12 +28,16 @@ import { useSession } from "next-auth/react";
 export function PaymentsTab({ admission }: { admission: any }) {
   const { data: session } = useSession();
   const roles = (session?.user as any)?.roles || [];
-  const isSysAdminOrTic = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC");
-  const isWriteAllowed = isSysAdminOrTic || roles.includes("ADMISSION_STAFF") || roles.includes("CASHIER");
+  const isWriteAllowed = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC") || roles.includes("ADMISSION_STAFF") || roles.includes("CASHIER");
+
+  const guardians = admission.student?.family?.guardians ?? [];
+  const father = guardians.find((g: any) => g.relationship === "FATHER");
+  const mother = guardians.find((g: any) => g.relationship === "MOTHER");
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [collectingPayment, setCollectingPayment] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
+  const [printingReceipt, setPrintingReceipt] = useState<any | null>(null);
 
   // Form for adding a pending payment
   const addForm = useForm({
@@ -46,6 +51,7 @@ export function PaymentsTab({ admission }: { admission: any }) {
   // Form for collecting an existing payment
   const collectForm = useForm({
     defaultValues: {
+      amount: "",
       paymentMode: "CASH",
       paymentDate: new Date().toISOString().split("T")[0],
       remarks: "",
@@ -88,6 +94,7 @@ export function PaymentsTab({ admission }: { admission: any }) {
     setLoading(true);
     try {
       await collectPayment(collectingPayment.id, {
+        amount: data.amount ? parseFloat(data.amount) : undefined,
         paymentMode: data.paymentMode,
         paymentDate: data.paymentDate,
         remarks: data.remarks,
@@ -120,7 +127,7 @@ export function PaymentsTab({ admission }: { admission: any }) {
   return (
     <div className="space-y-6">
       {/* Summary Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 no-print">
         <Card className="bg-green-500/5 border-green-500/20">
           <CardContent className="p-4 flex flex-col items-center justify-center text-center">
             <p className="text-xs text-green-600 font-semibold uppercase tracking-wider mb-1">Total Paid / Waived</p>
@@ -135,7 +142,7 @@ export function PaymentsTab({ admission }: { admission: any }) {
         </Card>
       </div>
 
-      <Card>
+      <Card className="no-print">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
             <CardTitle className="text-base font-semibold">Fees & Outstanding Payments</CardTitle>
@@ -196,7 +203,19 @@ export function PaymentsTab({ admission }: { admission: any }) {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Collected Amount (₹) *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    {...collectForm.register("amount")}
+                    required
+                    className="bg-background"
+                    placeholder="Enter amount"
+                  />
+                </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">Payment Mode *</Label>
                   <Select value={paymentMode} onValueChange={(v) => collectForm.setValue("paymentMode", v as any)}>
@@ -268,9 +287,21 @@ export function PaymentsTab({ admission }: { admission: any }) {
                     )}
 
                     {p.receiptNo && (
-                      <p className="text-[11px] font-mono text-green-700 font-semibold bg-green-500/5 w-fit px-1.5 py-0.5 rounded border border-green-500/10">
-                        Rcpt: {p.receiptNo}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[11px] font-mono text-green-700 font-semibold bg-green-500/5 w-fit px-1.5 py-0.5 rounded border border-green-500/10">
+                          Rcpt: {p.receiptNo}
+                        </p>
+                        {admission.status === "CONFIRMED" && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-6 px-1.5 text-[10px] text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                            onClick={() => setPrintingReceipt(p)}
+                          >
+                            <Printer className="h-3 w-3 mr-1" /> Print Receipt
+                          </Button>
+                        )}
+                      </div>
                     )}
                     {p.remarks && <p className="text-xs text-muted-foreground/80 font-medium">Remarks: {p.remarks}</p>}
                     {p.waiverReason && <p className="text-xs text-red-600 font-medium bg-red-500/5 border border-red-500/10 rounded px-2 py-0.5 w-fit">Waiver Reason: {p.waiverReason}</p>}
@@ -288,6 +319,7 @@ export function PaymentsTab({ admission }: { admission: any }) {
                           setCollectingPayment(p);
                           setShowAddForm(false);
                           collectForm.reset({
+                            amount: p.amount > 0 ? p.amount.toString() : "",
                             paymentMode: "CASH",
                             paymentDate: new Date().toISOString().split("T")[0],
                             remarks: "",
@@ -325,6 +357,185 @@ export function PaymentsTab({ admission }: { admission: any }) {
           </div>
         </CardContent>
       </Card>
+
+      {printingReceipt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 print:absolute print:inset-0 print:bg-transparent print:p-0 print:block print:z-auto">
+          <style dangerouslySetInnerHTML={{ __html: `
+            @media print {
+              body * {
+                visibility: hidden;
+              }
+              #print-receipt-modal, #print-receipt-modal * {
+                visibility: visible;
+              }
+              #print-receipt-modal {
+                position: relative !important;
+                left: auto !important;
+                top: auto !important;
+                margin: 2cm auto !important;
+                padding: 1.5cm !important;
+                width: 100% !important;
+                max-width: 15cm !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 8px !important;
+                box-shadow: none !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 1.25rem !important;
+                font-size: 13px !important;
+              }
+              #print-receipt-modal h1 {
+                font-size: 18px !important;
+              }
+              #print-receipt-modal h2 {
+                font-size: 15px !important;
+              }
+              #print-receipt-modal .grid {
+                font-size: 13px !important;
+                gap: 12px !important;
+              }
+              #print-receipt-modal table {
+                font-size: 13px !important;
+              }
+              #print-receipt-modal table th, #print-receipt-modal table td {
+                padding: 8px 6px !important;
+              }
+              #print-receipt-modal .bg-muted\/20 {
+                font-size: 13px !important;
+                padding: 12px !important;
+              }
+              #print-receipt-modal img {
+                width: 60px !important;
+                height: 60px !important;
+              }
+              /* Collapse layout parents in print to avoid blank pages */
+              .space-y-6, main, .flex-col, .ml-64, .flex, .min-h-screen {
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
+              }
+            }
+          `}} />
+          <div 
+            id="print-receipt-modal" 
+            className="w-full max-w-md bg-white rounded-lg border shadow-lg p-6 relative flex flex-col gap-4 text-xs text-foreground"
+          >
+            {/* Header Section */}
+            <div className="flex items-center gap-3 border-b pb-3">
+              <img
+                src="/logo/appu-arivaalayem-logo.png"
+                alt="School Logo"
+                className="h-12 w-12 object-contain"
+              />
+              <div className="text-left">
+                <h1 className="text-sm font-bold">{process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}</h1>
+                <p className="text-[10px] text-muted-foreground">{admission.campus.name}</p>
+                <p className="text-[10px] text-muted-foreground">Academic Year: {admission.academicYear.label}</p>
+              </div>
+            </div>
+
+            {/* Receipt Title */}
+            <div className="text-center bg-muted/30 py-1 rounded">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Fee Receipt</h2>
+            </div>
+
+            {/* Receipt Details Block */}
+            <div className="grid grid-cols-2 gap-y-1.5 gap-x-2 pb-3 border-b text-[11px]">
+              <div>
+                <span className="text-muted-foreground font-medium">Receipt No:</span>
+                <span className="ml-1 font-semibold font-mono text-foreground">{printingReceipt.receiptNo || "-"}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground font-medium">Date:</span>
+                <span className="ml-1 font-semibold text-foreground">{formatDate(printingReceipt.paymentDate)}</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-muted-foreground font-medium">Student Name:</span>
+                <span className="ml-1 font-semibold text-foreground">{admission.student.fullNameEn}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground font-medium">Class / Grade:</span>
+                <span className="ml-1 font-semibold text-foreground">{admission.grade.name}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground font-medium">Parent Name:</span>
+                <span className="ml-1 font-semibold text-foreground">{father?.fullName || mother?.fullName || "N/A"}</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-muted-foreground font-medium">Admission No:</span>
+                <span className="ml-1 font-semibold text-foreground font-mono">{admission.admissionNo || "-"}</span>
+              </div>
+            </div>
+
+            {/* Payment Summary */}
+            <div className="border rounded overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-muted/40 border-b text-[10px] uppercase font-semibold text-muted-foreground">
+                    <th className="px-2 py-1.5">Fee Description</th>
+                    <th className="px-2 py-1.5 text-right font-semibold">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b">
+                    <td className="px-2 py-2 text-foreground font-medium">{printingReceipt.feeType}</td>
+                    <td className="px-2 py-2 text-right text-foreground font-semibold">{formatCurrency(Number(printingReceipt.amount))}</td>
+                  </tr>
+                  <tr className="bg-muted/20 font-semibold">
+                    <td className="px-2 py-2 text-[10px] uppercase text-muted-foreground">Total Paid Amount</td>
+                    <td className="px-2 py-2 text-right text-green-700 font-bold">{formatCurrency(Number(printingReceipt.amount))}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Payment Info */}
+            <div className="bg-muted/20 p-2.5 rounded text-[11px] grid grid-cols-2 gap-y-1 gap-x-2">
+              <div>
+                <span className="text-muted-foreground font-medium">Payment Mode:</span>
+                <span className="ml-1 font-semibold text-foreground">{printingReceipt.paymentMode}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground font-medium">Status:</span>
+                <span className="ml-1 font-bold text-green-700">{printingReceipt.paymentStatus}</span>
+              </div>
+              {printingReceipt.remarks && (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground font-medium">Remarks:</span>
+                  <span className="ml-1 text-foreground font-mono">{printingReceipt.remarks}</span>
+                </div>
+              )}
+              {printingReceipt.collectedBy && (
+                <div className="col-span-2">
+                  <span className="text-muted-foreground font-medium">Collected By (Cashier):</span>
+                  <span className="ml-1 text-foreground font-medium">{printingReceipt.collectedBy.fullName}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Signatures */}
+            <div className="grid grid-cols-2 gap-4 text-[10px] pt-4 border-t border-dashed mt-2">
+              <div className="text-center pt-6 border-t w-28 mx-auto">
+                <span className="text-muted-foreground">Parent's Sign</span>
+              </div>
+              <div className="text-center pt-6 border-t w-28 mx-auto">
+                <span className="text-muted-foreground">Authorized Sign</span>
+              </div>
+            </div>
+
+            {/* Modal Controls */}
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t no-print">
+              <Button variant="outline" size="sm" onClick={() => setPrintingReceipt(null)}>
+                Close
+              </Button>
+              <Button size="sm" onClick={() => window.print()}>
+                <Printer className="h-4 w-4 mr-1" /> Print
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

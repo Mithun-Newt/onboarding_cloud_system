@@ -9,12 +9,12 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDate(date: Date | string | null | undefined): string {
   if (!date) return "-";
-  return format(new Date(date), "dd/MM/yyyy");
+  return format(new Date(date), "yyyy-MM-dd");
 }
 
 export function formatDateTime(date: Date | string | null | undefined): string {
   if (!date) return "-";
-  return format(new Date(date), "dd/MM/yyyy HH:mm");
+  return format(new Date(date), "yyyy-MM-dd HH:mm");
 }
 
 export function calculateAge(dob: Date | string, cutoffDate?: string): string {
