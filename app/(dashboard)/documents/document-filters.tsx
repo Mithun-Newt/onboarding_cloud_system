@@ -27,7 +27,7 @@ export function DocumentFilters({ grades }: Props) {
     [pathname, router, searchParams]
   );
 
-  const hasFilters = searchParams.get("search") || searchParams.get("gradeId");
+  const hasFilters = searchParams.get("search") || searchParams.get("gradeId") || searchParams.get("status");
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -52,6 +52,18 @@ export function DocumentFilters({ grades }: Props) {
           {grades.map((g) => (
             <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
           ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={searchParams.get("status") ?? "__all__"} onValueChange={(v) => set("status", v)}>
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder="All statuses" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__all__">All statuses</SelectItem>
+          <SelectItem value="UPLOADED">Uploaded</SelectItem>
+          <SelectItem value="NOT_RECEIVED">Not Received</SelectItem>
+          <SelectItem value="REJECTED">Rejected</SelectItem>
         </SelectContent>
       </Select>
 

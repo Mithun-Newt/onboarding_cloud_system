@@ -206,9 +206,10 @@ model StaffUserRole {
 // ─── Student & Family ─────────────────────────────────────────────────────────
 
 model Family {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String    @id @default(cuid())
+  annualIncome Decimal?  @db.Decimal(12, 2)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   guardians  Guardian[]
   students   Student[]
@@ -222,6 +223,7 @@ model Guardian {
   relationship    String
   fullName        String
   mobile          String?
+  whatsapp        String?
   email           String?
   education       String?
   occupation      String?

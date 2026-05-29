@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 interface SearchParams {
   search?: string;
   gradeId?: string;
+  status?: string;
 }
 
 export default async function DocumentsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -33,6 +34,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Se
   // Filter in-memory based on query parameters
   const searchQuery = searchParams.search?.toLowerCase() || "";
   const selectedGradeId = searchParams.gradeId || "";
+  const selectedStatus = searchParams.status || "";
 
   const filteredDocs = docs.filter((d) => {
     const info = getGradeInfo(d);
@@ -42,6 +44,10 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Se
     }
 
     if (selectedGradeId && info.id !== selectedGradeId) {
+      return false;
+    }
+
+    if (selectedStatus && d.status !== selectedStatus) {
       return false;
     }
 

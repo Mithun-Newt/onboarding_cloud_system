@@ -237,6 +237,14 @@ export async function updateAdmissionFamily(admissionId: string, data: any) {
     await prisma.student.update({ where: { id: admission.studentId }, data: { familyId } });
   }
 
+  // Update family-level annual income
+  await prisma.family.update({
+    where: { id: familyId },
+    data: {
+      annualIncome: data.familyIncome ? parseFloat(data.familyIncome) : null,
+    },
+  });
+
   const existingGuardians = admission.student.family?.guardians ?? [];
   await prisma.guardian.deleteMany({ where: { familyId } });
 
@@ -247,10 +255,10 @@ export async function updateAdmissionFamily(admissionId: string, data: any) {
       relationship: "FATHER",
       fullName: data.fatherName,
       mobile: data.fatherMobile,
+      whatsapp: data.fatherWhatsapp || null,
       email: data.fatherEmail,
       education: data.fatherEducation,
       occupation: data.fatherOccupation,
-      annualIncome: data.fatherIncome ? parseFloat(data.fatherIncome) : null,
       isPrimary: data.primaryContactPerson === "FATHER",
     });
   }
@@ -260,10 +268,10 @@ export async function updateAdmissionFamily(admissionId: string, data: any) {
       relationship: "MOTHER",
       fullName: data.motherName,
       mobile: data.motherMobile,
+      whatsapp: data.motherWhatsapp || null,
       email: data.motherEmail,
       education: data.motherEducation,
       occupation: data.motherOccupation,
-      annualIncome: data.motherIncome ? parseFloat(data.motherIncome) : null,
       isPrimary: data.primaryContactPerson === "MOTHER",
     });
   }
@@ -370,11 +378,14 @@ export async function confirmAdmission(admissionId: string) {
   const father = guardians.find((g) => g.relationship === "FATHER");
   const mother = guardians.find((g) => g.relationship === "MOTHER");
 
-  if (!father || !father.fullName?.trim() || !father.mobile?.trim() || !father.education?.trim() || !father.occupation?.trim() || !father.annualIncome) {
-    throw new Error("Father's Name, Mobile, Education, Occupation, and Annual Income are required in Parent/Guardian Information.");
+  if (!student.family.annualIncome) {
+    throw new Error("Family Annual Income is required in Parent/Guardian Information.");
   }
-  if (!mother || !mother.fullName?.trim() || !mother.mobile?.trim() || !mother.education?.trim() || !mother.occupation?.trim() || !mother.annualIncome) {
-    throw new Error("Mother's Name, Mobile, Education, Occupation, and Annual Income are required in Parent/Guardian Information.");
+  if (!father || !father.fullName?.trim() || !father.mobile?.trim() || !father.education?.trim() || !father.occupation?.trim()) {
+    throw new Error("Father's Name, Mobile, Education, and Occupation are required in Parent/Guardian Information.");
+  }
+  if (!mother || !mother.fullName?.trim() || !mother.mobile?.trim() || !mother.education?.trim() || !mother.occupation?.trim()) {
+    throw new Error("Mother's Name, Mobile, Education, and Occupation are required in Parent/Guardian Information.");
   }
 
   // 3. Validate Medical Profile fields (all required)

@@ -155,7 +155,7 @@ export function StudentInfoTab({ admission }: Props) {
               ["Surname/Family Name (English)", student.surname ?? "-"],
               ["Given Name (Tamil)", student.givenNameTa ?? "-"],
               ["Surname/Family Name (Tamil)", student.surnameTa ?? "-"],
-              ["Date of Birth", student.dateOfBirth ? format(new Date(student.dateOfBirth), "dd/MM/yyyy") : "-"],
+              ["Date of Birth", student.dateOfBirth ? format(new Date(student.dateOfBirth), "yyyy-MM-dd") : "-"],
               ["Gender", student.gender],
               ["Blood Group", student.bloodGroup ?? "-"],
               ["Religion", student.religion ?? "-"],

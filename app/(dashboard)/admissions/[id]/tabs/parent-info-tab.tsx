@@ -34,20 +34,21 @@ export function ParentInfoTab({ admission }: { admission: any }) {
     defaultValues: {
       fatherName: father?.fullName ?? "",
       fatherMobile: father?.mobile ?? "",
+      fatherWhatsapp: father?.whatsapp ?? "",
       fatherEmail: father?.email ?? "",
       fatherEducation: father?.education ?? "",
       fatherOccupation: father?.occupation ?? "",
-      fatherIncome: father?.annualIncome?.toString() ?? "",
       motherName: mother?.fullName ?? "",
       motherMobile: mother?.mobile ?? "",
+      motherWhatsapp: mother?.whatsapp ?? "",
       motherEmail: mother?.email ?? "",
       motherEducation: mother?.education ?? "",
       motherOccupation: mother?.occupation ?? "",
-      motherIncome: mother?.annualIncome?.toString() ?? "",
       guardianName: guardian?.fullName ?? "",
       guardianRelationship: guardian?.relationship ?? "",
       guardianEducation: guardian?.education ?? "",
       guardianOccupation: guardian?.occupation ?? "",
+      familyIncome: admission.student.family?.annualIncome?.toString() ?? "",
       primaryContactPerson: primaryType,
     },
   });
@@ -78,10 +79,10 @@ export function ParentInfoTab({ admission }: { admission: any }) {
             {[
               ["Name", data.fullName],
               ["Mobile", data.mobile ?? "-"],
+              ...(title !== "Guardian" ? [["WhatsApp", data.whatsapp ?? "-"]] : []),
               ["Email", data.email ?? "-"],
               ["Education", data.education ?? "-"],
               ["Occupation", data.occupation ?? "-"],
-              ["Annual Income", data.annualIncome ? `₹${data.annualIncome}` : "-"],
             ].map(([label, value]) => (
               <div key={label as string}>
                 <dt className="text-xs text-muted-foreground">{label}</dt>
@@ -91,9 +92,17 @@ export function ParentInfoTab({ admission }: { admission: any }) {
           </dl>
         </div>
       ) : null)}
-      <div>
-        <dt className="text-xs text-muted-foreground">Primary Contact Person</dt>
-        <dd className="font-medium">{primaryType}</dd>
+      <div className="border-t pt-4 grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
+        <div>
+          <dt className="text-xs text-muted-foreground">Family Annual Income</dt>
+          <dd className="font-medium">
+            {admission.student.family?.annualIncome ? `₹${admission.student.family.annualIncome}` : "-"}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">Primary Contact Person</dt>
+          <dd className="font-medium">{primaryType}</dd>
+        </div>
       </div>
     </div>
   );
@@ -104,7 +113,7 @@ export function ParentInfoTab({ admission }: { admission: any }) {
         <CardTitle className="text-base">Parent / Guardian Information</CardTitle>
         {admission.status !== "CANCELLED" && isWriteAllowed && (
           <Button size="sm" variant="outline" onClick={() => setEditing(!editing)}>
-            <Pencil className="mr-1 h-4 w-4" />{editing ? "Cancel" : "Edit"}
+            {editing ? "Cancel" : "Edit"}
           </Button>
         )}
       </CardHeader>
@@ -117,10 +126,10 @@ export function ParentInfoTab({ admission }: { admission: any }) {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="space-y-1"><Label>Name *</Label><Input {...register("fatherName")} /></div>
                 <div className="space-y-1"><Label>Mobile *</Label><Input type="tel" {...register("fatherMobile")} /></div>
+                <div className="space-y-1"><Label>WhatsApp Number</Label><Input type="tel" {...register("fatherWhatsapp")} /></div>
                 <div className="space-y-1"><Label>Email</Label><Input type="email" {...register("fatherEmail")} /></div>
                 <div className="space-y-1"><Label>Education *</Label><Input {...register("fatherEducation")} /></div>
                 <div className="space-y-1"><Label>Occupation *</Label><Input {...register("fatherOccupation")} /></div>
-                <div className="space-y-1"><Label>Annual Income (₹) *</Label><Input type="number" {...register("fatherIncome")} /></div>
               </div>
             </div>
             {/* Mother */}
@@ -129,10 +138,10 @@ export function ParentInfoTab({ admission }: { admission: any }) {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="space-y-1"><Label>Name *</Label><Input {...register("motherName")} /></div>
                 <div className="space-y-1"><Label>Mobile *</Label><Input type="tel" {...register("motherMobile")} /></div>
+                <div className="space-y-1"><Label>WhatsApp Number</Label><Input type="tel" {...register("motherWhatsapp")} /></div>
                 <div className="space-y-1"><Label>Email</Label><Input type="email" {...register("motherEmail")} /></div>
                 <div className="space-y-1"><Label>Education *</Label><Input {...register("motherEducation")} /></div>
                 <div className="space-y-1"><Label>Occupation *</Label><Input {...register("motherOccupation")} /></div>
-                <div className="space-y-1"><Label>Annual Income (₹) *</Label><Input type="number" {...register("motherIncome")} /></div>
               </div>
             </div>
             {/* Guardian */}
@@ -145,17 +154,23 @@ export function ParentInfoTab({ admission }: { admission: any }) {
                 <div className="space-y-1"><Label>Occupation</Label><Input {...register("guardianOccupation")} /></div>
               </div>
             </div>
-            {/* Primary Contact */}
-            <div className="space-y-2">
-              <Label>Primary Contact Person</Label>
-              <Select value={watch("primaryContactPerson")} onValueChange={(v) => setValue("primaryContactPerson", v as any)}>
-                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FATHER">Father</SelectItem>
-                  <SelectItem value="MOTHER">Mother</SelectItem>
-                  <SelectItem value="GUARDIAN">Guardian</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Family Income & Primary Contact */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label>Family Annual Income (₹) *</Label>
+                <Input type="number" {...register("familyIncome")} />
+              </div>
+              <div className="space-y-1">
+                <Label>Primary Contact Person</Label>
+                <Select value={watch("primaryContactPerson")} onValueChange={(v) => setValue("primaryContactPerson", v as any)}>
+                  <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FATHER">Father</SelectItem>
+                    <SelectItem value="MOTHER">Mother</SelectItem>
+                    <SelectItem value="GUARDIAN">Guardian</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setEditing(false)}>Cancel</Button>
