@@ -120,6 +120,7 @@ model AcademicYear {
   registrations     Registration[]
   admissions        AdmissionApplication[]
   gradeSeatCapacity GradeSeatCapacity[]
+  cohortStrengths   CohortStrength[]
 
   @@map("academic_years")
 }
@@ -648,4 +649,22 @@ model AppSetting {
   updatedAt DateTime @updatedAt
 
   @@map("app_settings")
+}
+
+model CohortStrength {
+  id               String   @id @default(cuid())
+  className        String
+  promotedStrength Int      @default(0)
+  tc               Int      @default(0)
+  newAdmission     Int      @default(0)
+  target           Int      @default(0)
+  sortOrder        Int      @default(0)
+  academicYearId   String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  academicYear     AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  @@unique([className, academicYearId])
+  @@map("cohort_strengths")
 }

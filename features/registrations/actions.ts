@@ -37,8 +37,21 @@ export async function createRegistration(formData: unknown) {
       throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of ${targetMonthName}, ${academicYear.startYear}.`);
     }
 
-    if (selectedGrade.name !== eligibleGradeName) {
-      throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
+    let isEligible = false;
+    if (eligibleGradeName === "KG 1 (PRE-KG)" && selectedGrade.name === "KG 1 (PRE-KG)") isEligible = true;
+    else if (eligibleGradeName === "KG 2 (JKG)" && selectedGrade.name === "KG 2 (JKG)") isEligible = true;
+    else if (eligibleGradeName === "KG 3 (SKG)" && selectedGrade.name === "KG 3 (SKG)") isEligible = true;
+    else if (eligibleGradeName === "Grade 1 - YAAZH") {
+      isEligible = selectedGrade.name === "Grade 1 - YAAZH" || selectedGrade.name === "Grade 1 (ACS)";
+    } else if (eligibleGradeName === "Grade 2 (YAAZH & VEENAI)") {
+      isEligible = selectedGrade.name === "Grade 2 (YAAZH & VEENAI)" || selectedGrade.name === "Grade 2 (ACS)";
+    }
+
+    if (!isEligible) {
+      let eligibleMsg = eligibleGradeName;
+      if (eligibleGradeName === "Grade 1 - YAAZH") eligibleMsg = "Grade 1 - YAAZH or Grade 1 (ACS)";
+      if (eligibleGradeName === "Grade 2 (YAAZH & VEENAI)") eligibleMsg = "Grade 2 (YAAZH & VEENAI) or Grade 2 (ACS)";
+      throw new Error(`The student's age is eligible only for "${eligibleMsg}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
     }
 
     const normalizedStudentName = data.givenName.trim();
@@ -124,8 +137,21 @@ export async function updateRegistration(id: string, formData: unknown) {
       throw new Error(`Student's age of ${age} years is not eligible for admission. Students must be between 3 and 8 years old as of ${targetMonthName}, ${academicYear.startYear}.`);
     }
 
-    if (selectedGrade.name !== eligibleGradeName) {
-      throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
+    let isEligible = false;
+    if (eligibleGradeName === "KG 1 (PRE-KG)" && selectedGrade.name === "KG 1 (PRE-KG)") isEligible = true;
+    else if (eligibleGradeName === "KG 2 (JKG)" && selectedGrade.name === "KG 2 (JKG)") isEligible = true;
+    else if (eligibleGradeName === "KG 3 (SKG)" && selectedGrade.name === "KG 3 (SKG)") isEligible = true;
+    else if (eligibleGradeName === "Grade 1 - YAAZH") {
+      isEligible = selectedGrade.name === "Grade 1 - YAAZH" || selectedGrade.name === "Grade 1 (ACS)";
+    } else if (eligibleGradeName === "Grade 2 (YAAZH & VEENAI)") {
+      isEligible = selectedGrade.name === "Grade 2 (YAAZH & VEENAI)" || selectedGrade.name === "Grade 2 (ACS)";
+    }
+
+    if (!isEligible) {
+      let eligibleMsg = eligibleGradeName;
+      if (eligibleGradeName === "Grade 1 - YAAZH") eligibleMsg = "Grade 1 - YAAZH or Grade 1 (ACS)";
+      if (eligibleGradeName === "Grade 2 (YAAZH & VEENAI)") eligibleMsg = "Grade 2 (YAAZH & VEENAI) or Grade 2 (ACS)";
+      throw new Error(`The student's age is eligible only for "${eligibleMsg}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
     }
 
     const normalizedStudentName = data.givenName.trim();

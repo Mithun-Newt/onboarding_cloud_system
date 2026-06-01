@@ -47,6 +47,7 @@ export function RegistrationForm({
     handleSubmit,
     watch,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<RegistrationInput>({
     resolver: zodResolver(registrationSchema),
@@ -94,18 +95,31 @@ export function RegistrationForm({
     } else {
       setAgeError(null);
       let matchingGradeName = "";
-      if (age === 3) matchingGradeName = "Pre-KG";
-      else if (age === 4) matchingGradeName = "LKG";
-      else if (age === 5) matchingGradeName = "UKG";
-      else if (age === 6) matchingGradeName = "Grade 1";
-      else if (age === 7) matchingGradeName = "Grade 2";
+      if (age === 3) matchingGradeName = "KG 1 (PRE-KG)";
+      else if (age === 4) matchingGradeName = "KG 2 (JKG)";
+      else if (age === 5) matchingGradeName = "KG 3 (SKG)";
+      else if (age === 6) matchingGradeName = "Grade 1 - YAAZH";
+      else if (age === 7) matchingGradeName = "Grade 2 (YAAZH & VEENAI)";
 
-      const matchingGrade = grades.find((g) => g.name === matchingGradeName);
-      if (matchingGrade) {
-        setValue("gradeId", matchingGrade.id);
+      const currentGradeId = getValues("gradeId");
+      const currentGrade = grades.find((g) => g.id === currentGradeId);
+      let isCurrentEligible = false;
+      if (currentGrade) {
+        if (age === 3 && currentGrade.name === "KG 1 (PRE-KG)") isCurrentEligible = true;
+        if (age === 4 && currentGrade.name === "KG 2 (JKG)") isCurrentEligible = true;
+        if (age === 5 && currentGrade.name === "KG 3 (SKG)") isCurrentEligible = true;
+        if (age === 6 && (currentGrade.name === "Grade 1 - YAAZH" || currentGrade.name === "Grade 1 (ACS)")) isCurrentEligible = true;
+        if (age === 7 && (currentGrade.name === "Grade 2 (YAAZH & VEENAI)" || currentGrade.name === "Grade 2 (ACS)")) isCurrentEligible = true;
+      }
+
+      if (!isCurrentEligible) {
+        const matchingGrade = grades.find((g) => g.name === matchingGradeName);
+        if (matchingGrade) {
+          setValue("gradeId", matchingGrade.id);
+        }
       }
     }
-  }, [dobValue, academicYearIdValue, ageRelaxationValue, academicYears, grades, setValue]);
+  }, [dobValue, academicYearIdValue, ageRelaxationValue, academicYears, grades, setValue, getValues]);
 
   const filteredGrades = (() => {
     if (!dobValue || !academicYearIdValue || ageError) {
@@ -129,15 +143,15 @@ export function RegistrationForm({
       age--;
     }
 
-    let matchingGradeName = "";
-    if (age === 3) matchingGradeName = "Pre-KG";
-    else if (age === 4) matchingGradeName = "LKG";
-    else if (age === 5) matchingGradeName = "UKG";
-    else if (age === 6) matchingGradeName = "Grade 1";
-    else if (age === 7) matchingGradeName = "Grade 2";
+    let eligibleGradeNames: string[] = [];
+    if (age === 3) eligibleGradeNames = ["KG 1 (PRE-KG)"];
+    else if (age === 4) eligibleGradeNames = ["KG 2 (JKG)"];
+    else if (age === 5) eligibleGradeNames = ["KG 3 (SKG)"];
+    else if (age === 6) eligibleGradeNames = ["Grade 1 - YAAZH", "Grade 1 (ACS)"];
+    else if (age === 7) eligibleGradeNames = ["Grade 2 (YAAZH & VEENAI)", "Grade 2 (ACS)"];
 
-    if (!matchingGradeName) return [];
-    return grades.filter((g) => g.name === matchingGradeName);
+    if (eligibleGradeNames.length === 0) return [];
+    return grades.filter((g) => eligibleGradeNames.includes(g.name));
   })();
 
   const calculatedAge = dobValue ? calculateAgeToday(dobValue) : "";
@@ -241,7 +255,7 @@ export function RegistrationForm({
 
               <div className="space-y-2">
                 <Label>Referred Student Grade / Class *</Label>
-                <Input {...register("referredStudentGrade")} placeholder="e.g. LKG / Grade 2" />
+                <Input {...register("referredStudentGrade")} placeholder="e.g. KG 2 (JKG) / Grade 2" />
                 {errors.referredStudentGrade && <p className="text-xs text-red-500">{errors.referredStudentGrade.message}</p>}
               </div>
             </>

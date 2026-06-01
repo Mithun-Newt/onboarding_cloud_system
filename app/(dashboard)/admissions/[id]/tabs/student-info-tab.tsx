@@ -336,7 +336,7 @@ export function StudentInfoTab({ admission }: Props) {
 
                   <div className="space-y-2">
                     <Label>Referred Student Grade / Class *</Label>
-                    <Input {...register("referredStudentGrade")} placeholder="e.g. LKG / Grade 2" />
+                    <Input {...register("referredStudentGrade")} placeholder="e.g. KG 2 (JKG) / Grade 2" />
                     {errors.referredStudentGrade && <p className="text-xs text-red-500">{(errors.referredStudentGrade as any).message}</p>}
                   </div>
                 </>

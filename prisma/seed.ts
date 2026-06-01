@@ -46,11 +46,13 @@ async function main() {
 
   // Grades
   const gradeData = [
-    { name: "Pre-KG", sortOrder: 1 },
-    { name: "LKG", sortOrder: 2 },
-    { name: "UKG", sortOrder: 3 },
-    { name: "Grade 1", sortOrder: 4 },
-    { name: "Grade 2", sortOrder: 5 },
+    { name: "KG 1 (PRE-KG)", sortOrder: 1 },
+    { name: "KG 2 (JKG)", sortOrder: 2 },
+    { name: "KG 3 (SKG)", sortOrder: 3 },
+    { name: "Grade 1 - YAAZH", sortOrder: 4 },
+    { name: "Grade 1 (ACS)", sortOrder: 5 },
+    { name: "Grade 2 (YAAZH & VEENAI)", sortOrder: 6 },
+    { name: "Grade 2 (ACS)", sortOrder: 7 },
   ];
 
   for (const g of gradeData) {

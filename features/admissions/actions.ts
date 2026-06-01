@@ -29,6 +29,12 @@ export async function createAdmission(registrationId: string) {
     });
     if (existingAdmission) throw new Error("Admission already exists for this registration");
 
+    // Check if there is remaining vacancy for this grade
+    const vacancy = await getRemainingVacancyForGrade(reg.gradeId, reg.academicYearId);
+    if (vacancy <= 0) {
+      throw new Error(`No vacancy available for grade "${reg.grade.name}". Adjust targets on the dashboard to allow more admissions.`);
+    }
+
     // 1. Create family and guardians from registration details
     const family = await prisma.family.create({ data: {} });
     const guardiansData: any[] = [];
@@ -629,4 +635,40 @@ export async function transliterateEnglishToTamil(text: string): Promise<string>
     console.error("TRANSLITERATION_ERROR:", error);
   }
   return "";
+}
+
+export async function getRemainingVacancyForGrade(gradeId: string, academicYearId: string): Promise<number> {
+  try {
+    const grade = await prisma.grade.findUnique({ where: { id: gradeId } });
+    if (!grade) return 0;
+
+    // 1. Get confirmed admissions in the system for this grade/year
+    const dbConfirmed = await prisma.admissionApplication.count({
+      where: {
+        gradeId,
+        academicYearId,
+        status: "CONFIRMED",
+      },
+    });
+
+    // 2. Fetch the cohort row matching the grade name exactly
+    const cohort = await prisma.cohortStrength.findFirst({
+      where: {
+        academicYearId,
+        className: grade.name,
+      },
+    });
+
+    if (!cohort) {
+      return 70 - dbConfirmed;
+    }
+
+    const achieved = cohort.promotedStrength - cohort.tc + cohort.newAdmission;
+    const cohortVacancy = cohort.target - achieved;
+
+    return cohortVacancy - dbConfirmed;
+  } catch (error) {
+    console.error("Error checking vacancy for grade:", error);
+    return 0;
+  }
 }

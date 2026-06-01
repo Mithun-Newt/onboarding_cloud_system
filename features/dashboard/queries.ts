@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { startOfDay, endOfDay } from "date-fns";
+import { getCohortStrengths } from "./cohort-actions";
 
 export async function getDashboardStats(academicYearId?: string) {
   const today = new Date();
@@ -7,6 +8,12 @@ export async function getDashboardStats(academicYearId?: string) {
   const endToday = endOfDay(today);
 
   const whereYear = academicYearId ? { academicYearId } : {};
+
+  let activeYearId = academicYearId;
+  if (!activeYearId) {
+    const currentYear = await prisma.academicYear.findFirst({ where: { isCurrent: true } });
+    activeYearId = currentYear?.id;
+  }
 
   const [
     todayRegistrations,
@@ -19,6 +26,7 @@ export async function getDashboardStats(academicYearId?: string) {
     sourceWise,
     specialSupport,
     transportRequired,
+    cohortStrengths,
   ] = await Promise.all([
     prisma.registration.count({
       where: { ...whereYear, registrationDate: { gte: startToday, lte: endToday } },
@@ -60,6 +68,7 @@ export async function getDashboardStats(academicYearId?: string) {
     prisma.transportRequest.count({
       where: { required: true },
     }),
+    activeYearId ? getCohortStrengths(activeYearId) : Promise.resolve([]),
   ]);
 
   const grades = await prisma.grade.findMany({ orderBy: { sortOrder: "asc" } });
@@ -70,11 +79,38 @@ export async function getDashboardStats(academicYearId?: string) {
     {} as Record<string, number>
   );
 
+  const dbConfirmedCounts = grades.reduce(
+    (acc, g) => {
+      acc[g.name] = admittedByGrade[g.id] ?? 0;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
   const seatInfo = grades.map((g) => {
-    const cap = seatCapacity.find((s) => s.gradeId === g.id);
     const admitted = admittedByGrade[g.id] ?? 0;
-    const total = cap?.totalSeats ?? 0;
-    return { grade: g.name, total, admitted, available: Math.max(0, total - admitted) };
+
+    const matchedCohort = cohortStrengths.find((c) => c.className === g.name);
+
+    const total = matchedCohort ? matchedCohort.target : 70;
+    const cohortAchieved = matchedCohort
+      ? (matchedCohort.promotedStrength - matchedCohort.tc + matchedCohort.newAdmission)
+      : 0;
+    const cohortVacancy = matchedCohort ? (matchedCohort.target - cohortAchieved) : 70;
+
+    const filled = cohortAchieved + admitted;
+    const remainingVacancy = cohortVacancy - admitted;
+    const isExceeded = remainingVacancy <= 0;
+
+    return {
+      grade: g.name,
+      total,
+      admitted,
+      filled,
+      cohortVacancy,
+      remainingVacancy,
+      isExceeded,
+    };
   });
 
   const regByGrade = registrationsByGrade.reduce(
@@ -103,6 +139,7 @@ export async function getDashboardStats(academicYearId?: string) {
     gradeStats,
     seatInfo,
     sourceStats,
+    dbConfirmedCounts,
   };
 }
 

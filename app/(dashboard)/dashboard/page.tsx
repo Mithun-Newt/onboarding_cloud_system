@@ -1,4 +1,7 @@
 import { getDashboardStats, getCurrentAcademicYear } from "@/features/dashboard/queries";
+import { getCohortStrengths } from "@/features/dashboard/cohort-actions";
+import { getSession } from "@/lib/auth";
+import { CohortTable } from "./cohort-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ClipboardList,
@@ -18,6 +21,14 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const academicYear = await getCurrentAcademicYear();
   const stats = await getDashboardStats(academicYear?.id);
+
+  const initialStrengths = academicYear?.id
+    ? await getCohortStrengths(academicYear.id)
+    : [];
+
+  const session = await getSession();
+  const roles = (session?.user as any)?.roles || [];
+  const isWriteAllowed = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC") || roles.includes("ADMISSION_STAFF");
 
   const kpiCards = [
     {
@@ -129,14 +140,44 @@ export default async function DashboardPage() {
                   <div className="mb-1 flex justify-between text-sm">
                     <span className="font-medium">{s.grade}</span>
                     <span className="text-muted-foreground">
-                      {s.admitted}/{s.total} filled · <span className="text-green-600">{s.available} open</span>
+                      {s.filled}/{s.total} filled ·{" "}
+                      {s.remainingVacancy < 0 ? (
+                        <span className="text-amber-600 font-semibold">
+                          {Math.abs(s.remainingVacancy)} exceeded
+                        </span>
+                      ) : s.remainingVacancy === 0 ? (
+                        <span className="text-amber-600 font-semibold">
+                          0 open (Full)
+                        </span>
+                      ) : (
+                        <span className="text-green-600 font-semibold">
+                          {s.remainingVacancy} open
+                        </span>
+                      )}
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-gray-100">
-                    <div
-                      className="h-2 rounded-full bg-blue-500"
-                      style={{ width: s.total > 0 ? `${Math.min(100, (s.admitted / s.total) * 100)}%` : "0%" }}
-                    />
+                  <div className="h-3 w-full rounded-full bg-gray-100 flex overflow-hidden">
+                    {s.isExceeded ? (
+                      <div
+                        className="h-full bg-amber-500 transition-all"
+                        style={{ width: `${Math.min(100, (s.filled / s.total) * 100)}%` }}
+                      />
+                    ) : (
+                      <>
+                        {s.filled > 0 && (
+                          <div
+                            className="h-full bg-blue-500 transition-all"
+                            style={{ width: `${Math.min(100, (s.filled / s.total) * 100)}%` }}
+                          />
+                        )}
+                        {s.remainingVacancy > 0 && (
+                          <div
+                            className="h-full bg-red-500 transition-all"
+                            style={{ width: `${Math.min(100, (s.remainingVacancy / s.total) * 100)}%` }}
+                          />
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -144,6 +185,14 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cohort Strength Flow Section */}
+      <CohortTable
+        initialStrengths={initialStrengths}
+        academicYearId={academicYear?.id ?? ""}
+        isWriteAllowed={isWriteAllowed}
+        dbConfirmedCounts={stats.dbConfirmedCounts}
+      />
 
       {/* Source-wise enquiries */}
       <Card>

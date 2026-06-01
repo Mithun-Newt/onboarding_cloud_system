@@ -10,6 +10,7 @@ import { CancelRegistrationButton } from "./cancel-button";
 import { StartAdmissionButton } from "./start-admission-button";
 import { DeleteRegistrationButton } from "./delete-button";
 import { getSession } from "@/lib/auth";
+import { getRemainingVacancyForGrade } from "@/features/admissions/actions";
 
 
 const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
@@ -39,6 +40,9 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
   ]);
 
   if (!reg) notFound();
+
+  const vacancy = await getRemainingVacancyForGrade(reg.gradeId, reg.academicYearId);
+  const hasVacancy = vacancy > 0;
 
   const roles = (session?.user as any)?.roles || [];
   const isWriteAllowed = roles.includes("SYSTEM_ADMIN") || roles.includes("TIC") || roles.includes("ADMISSION_STAFF");
@@ -116,7 +120,7 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
           {reg.status === "REGISTERED" && isWriteAllowed && (
             <>
               <CancelRegistrationButton registrationId={reg.id} />
-              <StartAdmissionButton registrationId={reg.id} studentName={reg.studentName} staffRemarks={reg.staffRemarks} />
+              <StartAdmissionButton registrationId={reg.id} studentName={reg.studentName} staffRemarks={reg.staffRemarks} hasVacancy={hasVacancy} />
             </>
           )}
           {reg.status === "ADMISSION_STARTED" && latestAdmission && (

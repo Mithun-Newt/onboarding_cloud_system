@@ -5,7 +5,6 @@ import { CalendarDays, GraduationCap, Armchair, FileText, Megaphone, Users, Hard
 const settingsLinks = [
   { href: "/settings/academic-years", label: "Academic Years", description: "Manage school years and set the current year", icon: CalendarDays },
   { href: "/settings/grades", label: "Grades / Classes", description: "Configure available grades and their sort order", icon: GraduationCap },
-  { href: "/settings/seat-capacity", label: "Seat Capacity", description: "Set seat limits per grade per campus per year", icon: Armchair },
   { href: "/settings/document-types", label: "Document Types", description: "Define required and optional admission documents", icon: FileText },
   { href: "/settings/enquiry-sources", label: "Enquiry Sources", description: "Manage how families hear about the school", icon: Megaphone },
   { href: "/settings/users", label: "Staff Users", description: "Create and manage staff accounts and roles", icon: Users },
