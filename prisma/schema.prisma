@@ -321,6 +321,7 @@ model Registration {
   specialSupport   Boolean            @default(false)
   specialDetails   String?
   staffRemarks     String?
+  ageRelaxation    Boolean            @default(false)
   referredStudentType  String?
   referredStudentName  String?
   referredStudentGrade String?

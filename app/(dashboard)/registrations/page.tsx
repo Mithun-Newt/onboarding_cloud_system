@@ -25,6 +25,7 @@ interface SearchParams {
   search?: string;
   page?: string;
   hasPriority?: string;
+  ageRelaxation?: string;
 }
 
 export default async function RegistrationsPage({ searchParams }: { searchParams: SearchParams }) {
@@ -38,6 +39,7 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
       status: searchParams.status,
       search: searchParams.search,
       hasPriority: searchParams.hasPriority,
+      ageRelaxation: searchParams.ageRelaxation,
       page,
     }),
     prisma.academicYear.findMany({ orderBy: { startYear: "desc" } }),
@@ -100,6 +102,9 @@ export default async function RegistrationsPage({ searchParams }: { searchParams
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <Badge variant={status.variant}>{status.label}</Badge>
+                        {r.ageRelaxation && (
+                          <Badge variant="warning">Age Relaxation</Badge>
+                        )}
                         {r.staffRemarks === "ELIGIBLE" && (
                           <Badge variant="success">Eligible</Badge>
                         )}

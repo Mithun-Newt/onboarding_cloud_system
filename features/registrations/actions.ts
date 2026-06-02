@@ -14,6 +14,14 @@ export async function createRegistration(formData: unknown) {
     const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
     const data = registrationSchema.parse(formData);
 
+    if (data.ageRelaxation) {
+      const dobParts = data.dateOfBirth.split("-");
+      const birthMonth = dobParts[1] ? parseInt(dobParts[1], 10) : null;
+      if (birthMonth !== 4 && birthMonth !== 5 && birthMonth !== 6) {
+        throw new Error("Age relaxation cannot be applied because this Date of Birth is beyond the June 30 threshold.");
+      }
+    }
+
     const academicYear = await prisma.academicYear.findUnique({ where: { id: data.academicYearId } });
     if (!academicYear) throw new Error("Academic year not found");
 
@@ -86,6 +94,7 @@ export async function createRegistration(formData: unknown) {
         enquirySourceId: data.enquirySourceId || null,
         specialSupport: data.specialSupport,
         specialDetails: data.specialDetails,
+        ageRelaxation: data.ageRelaxation,
         staffRemarks: data.staffRemarks === "NONE" ? null : data.staffRemarks,
       },
     });
@@ -110,6 +119,14 @@ export async function updateRegistration(id: string, formData: unknown) {
   try {
     const session = await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
     const data = registrationSchema.parse(formData);
+
+    if (data.ageRelaxation) {
+      const dobParts = data.dateOfBirth.split("-");
+      const birthMonth = dobParts[1] ? parseInt(dobParts[1], 10) : null;
+      if (birthMonth !== 4 && birthMonth !== 5 && birthMonth !== 6) {
+        throw new Error("Age relaxation cannot be applied because this Date of Birth is beyond the June 30 threshold.");
+      }
+    }
 
     const old = await prisma.registration.findUnique({ where: { id } });
     if (!old) throw new Error("Registration not found");
@@ -182,6 +199,7 @@ export async function updateRegistration(id: string, formData: unknown) {
         enquirySourceId: data.enquirySourceId || null,
         specialSupport: data.specialSupport,
         specialDetails: data.specialDetails,
+        ageRelaxation: data.ageRelaxation,
         staffRemarks: data.staffRemarks === "NONE" ? null : data.staffRemarks,
       },
     });
@@ -268,6 +286,7 @@ export async function getRegistrations(params: {
   status?: string;
   search?: string;
   hasPriority?: string | boolean;
+  ageRelaxation?: string;
   page?: number;
   pageSize?: number;
 }) {
@@ -280,6 +299,9 @@ export async function getRegistrations(params: {
     if (params.academicYearId) where.academicYearId = params.academicYearId;
     if (params.gradeId) where.gradeId = params.gradeId;
     if (params.status) where.status = params.status;
+    if (params.ageRelaxation !== undefined && params.ageRelaxation !== "") {
+      where.ageRelaxation = params.ageRelaxation === "true";
+    }
 
     const andConditions: any[] = [];
 

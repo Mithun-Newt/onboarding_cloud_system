@@ -60,8 +60,79 @@ export function RegistrationForm({
   const ageRelaxationValue = watch("ageRelaxation") ?? false;
   const referredStudentTypeValue = watch("referredStudentType") ?? "NEW_STUDENT";
 
+  const dobParts = dobValue ? dobValue.split("-") : [];
+  const isValidDob = !!(dobValue && dobParts.length === 3 && !isNaN(new Date(parseInt(dobParts[0], 10), parseInt(dobParts[1], 10) - 1, parseInt(dobParts[2], 10)).getTime()));
+
+  const birthMonth = isValidDob ? parseInt(dobParts[1], 10) : null;
+  const isWithinWindow = birthMonth !== null && (birthMonth === 4 || birthMonth === 5 || birthMonth === 6);
+
+  const getGradeForAge = (age: number) => {
+    if (age === 3) return "KG 1 (PRE-KG)";
+    if (age === 4) return "KG 2 (JKG)";
+    if (age === 5) return "KG 3 (SKG)";
+    if (age === 6) return "Grade 1 - YAAZH";
+    if (age === 7) return "Grade 2 (YAAZH & VEENAI)";
+    return null;
+  };
+
+  const eligibilityFeedback = (() => {
+    if (!isValidDob || !academicYearIdValue) return null;
+    const selectedYear = academicYears.find((y) => y.id === academicYearIdValue);
+    if (!selectedYear) return null;
+    const startYear = selectedYear.startYear;
+
+    const dobPartsInternal = dobValue.split("-");
+    const dob = new Date(parseInt(dobPartsInternal[0], 10), parseInt(dobPartsInternal[1], 10) - 1, parseInt(dobPartsInternal[2], 10));
+
+    // Calculate standard age (March 31 target)
+    const standardTargetDate = new Date(startYear, 2, 31);
+    let standardAge = standardTargetDate.getFullYear() - dob.getFullYear();
+    const standardM = standardTargetDate.getMonth() - dob.getMonth();
+    if (standardM < 0 || (standardM === 0 && standardTargetDate.getDate() < dob.getDate())) {
+      standardAge--;
+    }
+
+    // Calculate relaxation age (June 30 target)
+    const relaxationTargetDate = new Date(startYear, 5, 30);
+    let relaxationAge = relaxationTargetDate.getFullYear() - dob.getFullYear();
+    const relaxationM = relaxationTargetDate.getMonth() - dob.getMonth();
+    if (relaxationM < 0 || (relaxationM === 0 && relaxationTargetDate.getDate() < dob.getDate())) {
+      relaxationAge--;
+    }
+
+    const standardGrade = getGradeForAge(standardAge);
+    const relaxationGrade = getGradeForAge(relaxationAge);
+
+    const standardEligible = standardAge >= 3 && standardAge <= 7;
+    const relaxationEligible = relaxationAge >= 3 && relaxationAge <= 7;
+
+    if (standardEligible) {
+      if (isWithinWindow && relaxationGrade && standardGrade !== relaxationGrade) {
+        if (ageRelaxationValue) {
+          return `This Date of Birth is suitable for ${relaxationGrade} with age relaxation applied.`;
+        }
+        return `This Date of Birth is perfect for ${standardGrade}. Age relaxation can be applied to change the grade to ${relaxationGrade}.`;
+      }
+      return `This Date of Birth is perfect for admission to ${standardGrade || "suitable grade"}.`;
+    }
+
+    if (relaxationEligible && isWithinWindow) {
+      if (ageRelaxationValue && relaxationGrade) {
+        return `This Date of Birth is suitable for ${relaxationGrade} with age relaxation applied.`;
+      }
+    }
+
+    return null;
+  })();
+
   useEffect(() => {
-    if (!dobValue || !academicYearIdValue) {
+    if (isValidDob && !isWithinWindow && ageRelaxationValue) {
+      setValue("ageRelaxation", false);
+    }
+  }, [isValidDob, isWithinWindow, ageRelaxationValue, setValue]);
+
+  useEffect(() => {
+    if (!isValidDob || !academicYearIdValue) {
       setAgeError(null);
       return;
     }
@@ -72,12 +143,8 @@ export function RegistrationForm({
       return;
     }
 
-    const dob = new Date(dobValue);
-    if (isNaN(dob.getTime())) {
-      setAgeError(null);
-      return;
-    }
-
+    const dobPartsInternal = dobValue.split("-");
+    const dob = new Date(parseInt(dobPartsInternal[0], 10), parseInt(dobPartsInternal[1], 10) - 1, parseInt(dobPartsInternal[2], 10));
     const startYear = selectedYear.startYear;
     const targetMonthIndex = ageRelaxationValue ? 5 : 2;
     const targetDay = ageRelaxationValue ? 30 : 31;
@@ -119,10 +186,10 @@ export function RegistrationForm({
         }
       }
     }
-  }, [dobValue, academicYearIdValue, ageRelaxationValue, academicYears, grades, setValue, getValues]);
+  }, [isValidDob, dobValue, academicYearIdValue, ageRelaxationValue, academicYears, grades, setValue, getValues, isWithinWindow]);
 
   const filteredGrades = (() => {
-    if (!dobValue || !academicYearIdValue || ageError) {
+    if (!isValidDob || !academicYearIdValue || ageError) {
       if (ageError) return [];
       return grades;
     }
@@ -130,7 +197,8 @@ export function RegistrationForm({
     const selectedYear = academicYears.find((y) => y.id === academicYearIdValue);
     if (!selectedYear) return grades;
 
-    const dob = new Date(dobValue);
+    const dobPartsInternal = dobValue.split("-");
+    const dob = new Date(parseInt(dobPartsInternal[0], 10), parseInt(dobPartsInternal[1], 10) - 1, parseInt(dobPartsInternal[2], 10));
     if (isNaN(dob.getTime())) return grades;
 
     const startYear = selectedYear.startYear;
@@ -197,6 +265,11 @@ export function RegistrationForm({
             <Input type="date" {...register("dateOfBirth")} />
             {errors.dateOfBirth && <p className="text-xs text-red-500">{errors.dateOfBirth.message}</p>}
             {ageError && <p className="text-xs text-red-500 font-medium">{ageError}</p>}
+            {eligibilityFeedback && (
+              <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                {eligibilityFeedback}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -223,13 +296,19 @@ export function RegistrationForm({
           </div>
 
           <div className="space-y-2 flex flex-col justify-end pb-1.5">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className={`flex items-center gap-2 ${isValidDob && !isWithinWindow ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}>
               <Checkbox
                 checked={ageRelaxationValue}
                 onCheckedChange={(v) => setValue("ageRelaxation", Boolean(v))}
+                disabled={Boolean(isValidDob && !isWithinWindow)}
               />
               <span className="text-sm font-medium text-amber-700 dark:text-amber-400">Apply Age Relaxation</span>
             </label>
+            {isValidDob && !isWithinWindow && (
+              <p className="text-xs text-red-500 font-medium mt-1">
+                Age relaxation cannot be applied because this is beyond June 30 threshold.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

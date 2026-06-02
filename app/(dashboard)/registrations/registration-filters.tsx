@@ -41,7 +41,8 @@ export function RegistrationFilters({ academicYears, grades }: Props) {
     searchParams.get("academicYearId") ||
     searchParams.get("gradeId") ||
     searchParams.get("status") ||
-    searchParams.get("hasPriority");
+    searchParams.get("hasPriority") ||
+    searchParams.get("ageRelaxation");
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -101,6 +102,17 @@ export function RegistrationFilters({ academicYears, grades }: Props) {
           <SelectItem value="__all__">All admissions</SelectItem>
           <SelectItem value="true">Priority Only</SelectItem>
           <SelectItem value="false">Normal Only</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select value={searchParams.get("ageRelaxation") ?? "__all__"} onValueChange={(v) => set("ageRelaxation", v)}>
+        <SelectTrigger className="w-44">
+          <SelectValue placeholder="All age options" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__all__">All age options</SelectItem>
+          <SelectItem value="true">Age Relaxation Applied</SelectItem>
+          <SelectItem value="false">No Age Relaxation</SelectItem>
         </SelectContent>
       </Select>
 

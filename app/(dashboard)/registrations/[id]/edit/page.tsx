@@ -20,14 +20,6 @@ export default async function EditRegistrationPage({ params }: { params: { id: s
   }
 
 
-  const eligibleGrade = getEligibleGradeName(reg.dateOfBirth, reg.academicYear.startYear);
-  let isRelaxed = reg.grade.name !== eligibleGrade;
-  if (eligibleGrade === "Grade 1 - YAAZH" && (reg.grade.name === "Grade 1 - YAAZH" || reg.grade.name === "Grade 1 (ACS)")) {
-    isRelaxed = false;
-  } else if (eligibleGrade === "Grade 2 (YAAZH & VEENAI)" && (reg.grade.name === "Grade 2 (YAAZH & VEENAI)" || reg.grade.name === "Grade 2 (ACS)")) {
-    isRelaxed = false;
-  }
-
   const [academicYears, grades, campuses, enquirySources] = await Promise.all([
     prisma.academicYear.findMany({ where: { isActive: true }, orderBy: { startYear: "desc" } }),
     prisma.grade.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
@@ -49,7 +41,7 @@ export default async function EditRegistrationPage({ params }: { params: { id: s
           campusId: reg.campusId,
           gradeId: reg.gradeId,
           givenName: reg.studentName,
-          ageRelaxation: isRelaxed,
+          ageRelaxation: reg.ageRelaxation,
           dateOfBirth: format(new Date(reg.dateOfBirth), "yyyy-MM-dd"),
           gender: reg.gender,
           fatherName: reg.fatherName ?? "",
