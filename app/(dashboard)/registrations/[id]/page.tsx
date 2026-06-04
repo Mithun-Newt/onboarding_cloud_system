@@ -67,6 +67,7 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
     ["Primary Contact", reg.primaryContact ?? "-"],
     ["Previous School", reg.prevSchoolName ?? "-"],
     ["Address", [reg.address1, reg.address2, reg.city, reg.state, reg.pinCode].filter(Boolean).join(", ") || "-"],
+    ["Address (Tamil)", [reg.address1Ta, reg.address2Ta, reg.cityTa].filter(Boolean).join(", ") || "-"],
     ["Enquiry Source", reg.enquirySource?.name ?? "-"],
     ["Special Support", reg.specialSupport ? "Yes" : "No"],
     ["Special Details", reg.specialDetails ?? "-"],

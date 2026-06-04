@@ -96,10 +96,13 @@ export function StudentInfoTab({ admission }: Props) {
       motherTongue: student.motherTongue ?? "",
       nationality: student.nationality ?? "Indian",
       emisNumber: student.emisNumber ?? "",
-      aadhaarLast4: student.aadhaarLast4 ?? "",
+      aadhaarNo: student.aadhaarNo ?? "",
       address1: student.address1 ?? "",
+      address1Ta: student.address1Ta ?? "",
       address2: student.address2 ?? "",
+      address2Ta: student.address2Ta ?? "",
       city: student.city ?? "",
+      cityTa: student.cityTa ?? "",
       state: student.state ?? "",
       pinCode: student.pinCode ?? "",
       referredStudentType: student.referredStudentType ?? "NEW_STUDENT",
@@ -116,6 +119,18 @@ export function StudentInfoTab({ admission }: Props) {
       const tamilValue = await transliterateEnglishToTamil(englishValue);
       if (tamilValue) {
         setValue(field === "givenName" ? "givenNameTa" : "surnameTa", tamilValue, { shouldValidate: true });
+      }
+    } catch (error) {
+      console.error("Transliteration failed", error);
+    }
+  };
+
+  const handleTransliterateAddress = async (field: "address1" | "address2" | "city", englishValue: string) => {
+    if (!englishValue) return;
+    try {
+      const tamilValue = await transliterateEnglishToTamil(englishValue);
+      if (tamilValue) {
+        setValue(`${field}Ta` as any, tamilValue, { shouldValidate: true });
       }
     } catch (error) {
       console.error("Transliteration failed", error);
@@ -164,8 +179,9 @@ export function StudentInfoTab({ admission }: Props) {
               ["Mother Tongue", student.motherTongue ?? "-"],
               ["Nationality", student.nationality ?? "Indian"],
               ["EMIS Number", student.emisNumber ?? "-"],
-              ["Aadhaar (last 4)", student.aadhaarLast4 ? `XXXX XXXX ${student.aadhaarLast4}` : "-"],
+              ["Aadhaar Number", student.aadhaarNo || "-"],
               ["Address", [student.address1, student.address2, student.city, student.state, student.pinCode].filter(Boolean).join(", ") || "-"],
+              ["Address (Tamil)", [student.address1Ta, student.address2Ta, student.cityTa].filter(Boolean).join(", ") || "-"],
               ["Connection Type", student.referredStudentType === "SIBLING" ? "Sibling" : student.referredStudentType === "RELATIVE" ? "Relative" : "New Student (No Connection)"],
               ...(student.referredStudentType === "SIBLING" || student.referredStudentType === "RELATIVE" ? [
                 ["Referred Student Name", student.referredStudentName ?? "-"],
@@ -290,20 +306,50 @@ export function StudentInfoTab({ admission }: Props) {
                 <Input {...register("emisNumber")} />
               </div>
               <div className="space-y-2">
-                <Label>Aadhaar Last 4 Digits</Label>
-                <Input {...register("aadhaarLast4")} maxLength={4} placeholder="1234" />
+                <Label>Aadhaar Number</Label>
+                <Input {...register("aadhaarNo")} maxLength={12} placeholder="12-digit Aadhaar Number" />
               </div>
               <div className="space-y-2 sm:col-span-3">
                 <Label>Address Line 1 *</Label>
-                <Input {...register("address1")} />
+                <Input 
+                  {...register("address1")} 
+                  onBlur={(e) => {
+                    register("address1").onBlur(e);
+                    handleTransliterateAddress("address1", e.target.value);
+                  }}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-3">
+                <Label>Address Line 1 (Tamil)</Label>
+                <Input {...register("address1Ta")} />
               </div>
               <div className="space-y-2 sm:col-span-3">
                 <Label>Address Line 2</Label>
-                <Input {...register("address2")} />
+                <Input 
+                  {...register("address2")} 
+                  onBlur={(e) => {
+                    register("address2").onBlur(e);
+                    handleTransliterateAddress("address2", e.target.value);
+                  }}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-3">
+                <Label>Address Line 2 (Tamil)</Label>
+                <Input {...register("address2Ta")} />
               </div>
               <div className="space-y-2">
                 <Label>City *</Label>
-                <Input {...register("city")} />
+                <Input 
+                  {...register("city")} 
+                  onBlur={(e) => {
+                    register("city").onBlur(e);
+                    handleTransliterateAddress("city", e.target.value);
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>City (Tamil)</Label>
+                <Input {...register("cityTa")} />
               </div>
               <div className="space-y-2">
                 <Label>State *</Label>

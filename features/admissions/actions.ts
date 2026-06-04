@@ -73,8 +73,11 @@ export async function createAdmission(registrationId: string) {
         dateOfBirth: reg.dateOfBirth,
         gender: reg.gender,
         address1: reg.address1,
+        address1Ta: reg.address1Ta,
         address2: reg.address2,
+        address2Ta: reg.address2Ta,
         city: reg.city,
+        cityTa: reg.cityTa,
         state: reg.state,
         pinCode: reg.pinCode,
         referredStudentType: reg.referredStudentType,
@@ -200,10 +203,13 @@ export async function updateAdmissionStudent(admissionId: string, data: any) {
         motherTongue: data.motherTongue,
         nationality: data.nationality,
         emisNumber: data.emisNumber,
-        aadhaarLast4: data.aadhaarLast4,
+        aadhaarNo: data.aadhaarNo,
         address1: data.address1,
+        address1Ta: data.address1Ta,
         address2: data.address2,
+        address2Ta: data.address2Ta,
         city: data.city,
+        cityTa: data.cityTa,
         state: data.state,
         pinCode: data.pinCode,
         referredStudentType: data.referredStudentType || null,
@@ -624,17 +630,31 @@ export async function saveTransportRequest(
 export async function transliterateEnglishToTamil(text: string): Promise<string> {
   if (!text || !text.trim()) return "";
   try {
-    const url = `https://inputtools.google.com/request?text=${encodeURIComponent(text.trim())}&itc=ta-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8&app=onboarding`;
-    const response = await fetch(url);
-    if (!response.ok) return "";
-    const data = await response.json();
-    if (data[0] === "SUCCESS" && data[1]?.[0]?.[1]?.[0]) {
-      return data[1][0][1][0];
-    }
+    const parts = text.split(/([a-zA-Z]+)/);
+    const transliteratedParts = await Promise.all(
+      parts.map(async (part) => {
+        if (/^[a-zA-Z]+$/.test(part)) {
+          try {
+            const url = `https://inputtools.google.com/request?text=${encodeURIComponent(part)}&itc=ta-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8&app=onboarding`;
+            const response = await fetch(url);
+            if (response.ok) {
+              const data = await response.json();
+              if (data[0] === "SUCCESS" && data[1]?.[0]?.[1]?.[0]) {
+                return data[1][0][1][0];
+              }
+            }
+          } catch (e) {
+            console.error("Error transliterating part:", part, e);
+          }
+        }
+        return part;
+      })
+    );
+    return transliteratedParts.join("");
   } catch (error) {
     console.error("TRANSLITERATION_ERROR:", error);
   }
-  return "";
+  return text;
 }
 
 export async function getRemainingVacancyForGrade(gradeId: string, academicYearId: string): Promise<number> {

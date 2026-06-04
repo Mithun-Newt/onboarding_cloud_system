@@ -256,10 +256,13 @@ model Student {
   motherTongue      String?
   nationality       String   @default("Indian")
   emisNumber        String?
-  aadhaarLast4      String?
+  aadhaarNo         String?
   address1          String?
+  address1Ta        String?
   address2          String?
+  address2Ta        String?
   city              String?
+  cityTa            String?
   state             String?
   pinCode           String?
   photoPath         String?
@@ -313,11 +316,15 @@ model Registration {
   primaryContact   String?
   prevSchoolName   String?
   address1         String?
+  address1Ta       String?
   address2         String?
+  address2Ta       String?
   city             String?
+  cityTa           String?
   state            String?
   pinCode          String?
   enquirySourceId  String?
+  parentRemarks    String?
   specialSupport   Boolean            @default(false)
   specialDetails   String?
   staffRemarks     String?

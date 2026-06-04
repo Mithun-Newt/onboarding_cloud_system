@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registrationSchema, RegistrationInput } from "@/lib/validations/registration";
 import { createRegistration, updateRegistration } from "@/features/registrations/actions";
+import { transliterateEnglishToTamil } from "@/features/admissions/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,6 +56,18 @@ export function RegistrationForm({
   });
 
   const specialSupport = watch("specialSupport");
+
+  const handleTransliterateAddress = async (field: "address1" | "address2" | "city", englishValue: string) => {
+    if (!englishValue) return;
+    try {
+      const tamilValue = await transliterateEnglishToTamil(englishValue);
+      if (tamilValue) {
+        setValue(`${field}Ta` as any, tamilValue, { shouldValidate: true });
+      }
+    } catch (error) {
+      console.error("Transliteration failed", error);
+    }
+  };
   const dobValue = watch("dateOfBirth");
   const academicYearIdValue = watch("academicYearId");
   const ageRelaxationValue = watch("ageRelaxation") ?? false;
@@ -429,15 +442,45 @@ export function RegistrationForm({
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="space-y-2 sm:col-span-3">
             <Label>Address Line 1</Label>
-            <Input {...register("address1")} />
+            <Input 
+              {...register("address1")} 
+              onBlur={(e) => {
+                register("address1").onBlur(e);
+                handleTransliterateAddress("address1", e.target.value);
+              }}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-3">
+            <Label>Address Line 1 (Tamil)</Label>
+            <Input {...register("address1Ta")} />
           </div>
           <div className="space-y-2 sm:col-span-3">
             <Label>Address Line 2</Label>
-            <Input {...register("address2")} />
+            <Input 
+              {...register("address2")} 
+              onBlur={(e) => {
+                register("address2").onBlur(e);
+                handleTransliterateAddress("address2", e.target.value);
+              }}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-3">
+            <Label>Address Line 2 (Tamil)</Label>
+            <Input {...register("address2Ta")} />
           </div>
           <div className="space-y-2">
             <Label>City</Label>
-            <Input {...register("city")} />
+            <Input 
+              {...register("city")} 
+              onBlur={(e) => {
+                register("city").onBlur(e);
+                handleTransliterateAddress("city", e.target.value);
+              }}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>City (Tamil)</Label>
+            <Input {...register("cityTa")} />
           </div>
           <div className="space-y-2">
             <Label>State</Label>
@@ -463,6 +506,11 @@ export function RegistrationForm({
                 {enquirySources.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Parent Remarks / Feedback</Label>
+            <Textarea {...register("parentRemarks")} placeholder="Enter parents' feedback/remarks here..." rows={3} />
           </div>
 
           <div className="space-y-2">

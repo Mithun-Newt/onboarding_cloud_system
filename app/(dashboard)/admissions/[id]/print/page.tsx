@@ -140,13 +140,19 @@ export default async function PrintAdmissionPage({ params }: { params: { id: str
               <dd className="font-semibold">{admission.student.emisNumber || "-"}</dd>
             </div>
             <div>
-              <dt className="text-gray-500 font-medium">Aadhaar (Last 4 Digits)</dt>
-              <dd className="font-semibold">{admission.student.aadhaarLast4 || "-"}</dd>
+              <dt className="text-gray-500 font-medium">Aadhaar Number</dt>
+              <dd className="font-semibold">{admission.student.aadhaarNo || "-"}</dd>
             </div>
             <div className="col-span-2">
               <dt className="text-gray-500 font-medium">Residential Address</dt>
               <dd className="font-semibold">
                 {[admission.student.address1, admission.student.address2, admission.student.city, admission.student.state, admission.student.pinCode].filter(Boolean).join(", ") || "-"}
+              </dd>
+            </div>
+            <div className="col-span-2">
+              <dt className="text-gray-500 font-medium">Residential Address (Tamil)</dt>
+              <dd className="font-semibold">
+                {[admission.student.address1Ta, admission.student.address2Ta, admission.student.cityTa].filter(Boolean).join(", ") || "-"}
               </dd>
             </div>
           </dl>

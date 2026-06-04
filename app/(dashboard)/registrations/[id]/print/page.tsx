@@ -48,8 +48,10 @@ export default async function PrintRegistrationPage({ params }: { params: { id: 
             ["Mother Name", reg.motherName ?? "-"],
             ["Mother Mobile", reg.motherMobile ?? "-"],
             ["Address", [reg.address1, reg.city, reg.state, reg.pinCode].filter(Boolean).join(", ") || "-"],
+            ["Address (Tamil)", [reg.address1Ta, reg.cityTa].filter(Boolean).join(", ") || "-"],
             ["Previous School", reg.prevSchoolName ?? "-"],
             ["Special Support", reg.specialSupport ? "Yes" : "No"],
+            ["Parent Remarks / Feedback", reg.parentRemarks ?? "-"],
           ].map(([label, value]) => (
             <div key={label} className="border-b pb-2">
               <dt className="text-xs text-gray-500">{label}</dt>
