@@ -34,7 +34,7 @@ services:
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-this-secret-to-a-random-32-char-string}
       NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Junior School Admissions System}
-      NEXT_PUBLIC_SCHOOL_NAME: ${NEXT_PUBLIC_SCHOOL_NAME:-Junior School}
+      NEXT_PUBLIC_SCHOOL_NAME: ${NEXT_PUBLIC_SCHOOL_NAME:-Appu Arivaalayem}
       UPLOAD_DIR: /app/storage/uploads
       MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-10}
     volumes:

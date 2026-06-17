@@ -58,7 +58,7 @@ Edit `.env` and set:
 ```
 NEXTAUTH_SECRET=<generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
 NEXTAUTH_URL=http://<server-ip>:3000
-NEXT_PUBLIC_SCHOOL_NAME=Your School Name
+NEXT_PUBLIC_SCHOOL_NAME=Appu Arivaalayem
 ```
 
 ### 3. Build and seed

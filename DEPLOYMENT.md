@@ -75,7 +75,7 @@ MAX_FILE_SIZE_MB=10
 
 # ── Branding ──────────────────────────────────────────────────────────────────
 NEXT_PUBLIC_APP_NAME="Junior School Admissions System"
-NEXT_PUBLIC_SCHOOL_NAME="Your School Name"
+NEXT_PUBLIC_SCHOOL_NAME="Appu Arivaalayem"
 ```
 
 > **NEXTAUTH_URL tip:** Open Command Prompt and run `ipconfig`. Use the IPv4 address shown under your network adapter (e.g., `192.168.1.100`). Do NOT use `localhost` if other staff computers need to access the system.
