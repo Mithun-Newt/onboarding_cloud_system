@@ -1,0 +1,55 @@
+================================================================================
+DUPLICATE ADMISSION BUG - FIXED ✓
+================================================================================
+
+PROBLEM:
+  When starting an admission, TWO admission records were created instead of ONE
+  - Evidence: Akhil & Mithun appear twice in Admissions list
+  - Root Cause: React 18 StrictMode calling useEffect twice in development
+
+SOLUTION IMPLEMENTED:
+  Two-layer protection to prevent duplicate admissions
+
+  1. FRONTEND FIX: app/(dashboard)/admissions/new/page.tsx
+     - Added useRef to track if admission creation was already attempted
+     - Prevents effect from calling server action twice
+
+  2. BACKEND FIX: features/admissions/actions.ts
+     - Added database check: if admission exists for registration, throw error
+     - Prevents duplicates even if frontend check fails
+
+CLEANUP REQUIRED:
+  Remove duplicate test admissions created during testing
+
+  Option A (Easiest): Run Node script
+    > cd "C:\Users\mithu\OneDrive\Desktop\Onboarding - Copy"
+    > node cleanup.js
+
+  Option B: Run SQL script
+    > psql -U postgres -d school_admissions -f cleanup.sql
+
+  Option C: Manual deletion in UI
+    - Go to Admissions page
+    - Find duplicate admissions
+    - Click each one and click Cancel
+
+VERIFY THE FIX:
+  1. Create a NEW registration (different student name)
+  2. Click "Start Admission"
+  3. Go to Admissions page
+  4. Search for your new student
+  5. Result: Should see ONLY ONE admission record
+  6. ✓ If yes, fix is working!
+
+FILES MODIFIED:
+  ✓ app/(dashboard)/admissions/new/page.tsx
+  ✓ features/admissions/actions.ts
+
+FILES TO DELETE AFTER CLEANUP:
+  - cleanup.js
+  - cleanup.sql
+  - cleanup-test-data.ts
+
+NO EXISTING FEATURES CHANGED - Only the duplicate admission bug is fixed!
+
+================================================================================

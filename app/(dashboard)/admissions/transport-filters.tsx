@@ -44,13 +44,13 @@ export function TransportFilters({ routes }: Props) {
 
       <Select value={searchParams.get("routeId") ?? "__all__"} onValueChange={(v) => set("routeId", v)}>
         <SelectTrigger className="w-56">
-          <SelectValue placeholder="All bus routes" />
+          <SelectValue placeholder="All stages" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="__all__">All bus routes</SelectItem>
+          <SelectItem value="__all__">All stages</SelectItem>
           {routes.map((r) => (
             <SelectItem key={r.id} value={r.id}>
-              {r.routeNo} - {r.name}
+              {r.name}
             </SelectItem>
           ))}
         </SelectContent>

@@ -499,6 +499,7 @@ model BusStop {
   pickupTime String?
   dropTime   String?
   createdAt  DateTime @default(now())
+  distance   String?
 
   route             BusRoute           @relation(fields: [routeId], references: [id])
   transportRequests TransportRequest[]
@@ -512,6 +513,7 @@ model TransportRequest {
   required         Boolean  @default(false)
   routeId          String?
   stopId           String?
+  busNo            String?
   remarks          String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

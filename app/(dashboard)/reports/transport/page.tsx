@@ -14,11 +14,10 @@ export default async function TransportReportPage({ searchParams }: { searchPara
   const csvData = data.map((t) => ({
     "Student Name": t.admission.student.fullNameEn,
     "Grade": t.admission.grade.name,
-    "Route": t.route?.name ?? "-",
-    "Stop": t.stop?.stopName ?? "-",
-    "Stage": t.stop?.stage ?? "-",
-    "Pickup Time": t.stop?.pickupTime ?? "-",
-    "Drop Time": t.stop?.dropTime ?? "-",
+    "Stage": t.route?.name ?? "-",
+    "Place Name": t.stop?.stopName ?? "-",
+    "Distance": t.stop?.distance ?? "-",
+    "Bus Number": t.busNo ?? "-",
     "Remarks": t.remarks ?? "",
   }));
 
@@ -32,10 +31,10 @@ export default async function TransportReportPage({ searchParams }: { searchPara
             <tr className="border-b text-left text-xs text-muted-foreground">
               <th className="px-4 py-3 font-medium">Student</th>
               <th className="px-4 py-3 font-medium">Grade</th>
-              <th className="px-4 py-3 font-medium">Route</th>
-              <th className="px-4 py-3 font-medium">Stop</th>
-              <th className="px-4 py-3 font-medium">Pickup</th>
-              <th className="px-4 py-3 font-medium">Drop</th>
+              <th className="px-4 py-3 font-medium">Stage</th>
+              <th className="px-4 py-3 font-medium">Place Name</th>
+              <th className="px-4 py-3 font-medium">Distance</th>
+              <th className="px-4 py-3 font-medium">Bus Number</th>
             </tr>
           </thead>
           <tbody>
@@ -45,8 +44,8 @@ export default async function TransportReportPage({ searchParams }: { searchPara
                 <td className="px-4 py-3">{t.admission.grade.name}</td>
                 <td className="px-4 py-3">{t.route?.name ?? "-"}</td>
                 <td className="px-4 py-3">{t.stop?.stopName ?? "-"}</td>
-                <td className="px-4 py-3">{t.stop?.pickupTime ?? "-"}</td>
-                <td className="px-4 py-3">{t.stop?.dropTime ?? "-"}</td>
+                <td className="px-4 py-3">{t.stop?.distance ?? "-"}</td>
+                <td className="px-4 py-3 font-medium">{t.busNo ?? "-"}</td>
               </tr>
             ))}
             {data.length === 0 && (

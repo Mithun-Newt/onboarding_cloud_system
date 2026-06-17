@@ -14,6 +14,26 @@ import { Loader2, Pencil, Bus, MapPin, Clock, Info, CheckCircle2, AlertCircle } 
 
 import { useSession } from "next-auth/react";
 
+const BUS_LIST = [
+  ...Array.from({ length: 25 }, (_, i) => `BUS-${i + 1}A`),
+  "BUS-21-B",
+  "BUS-02ST",
+  "BUS-03ST",
+  "BUS-04ST",
+  "BUS-05ST",
+  "BUS-08ST",
+  "BUS-10ST",
+  "BUS-14ST",
+  "BUS-15ST",
+  "BUS-16ST",
+  "BUS-18ST",
+  "BUS-19ST",
+  "BUS-20ST",
+  "BUS-21ST",
+  "BUS-24ST",
+  "BUS-S4ST",
+];
+
 interface Props {
   admission: any;
   busRoutes: any[];
@@ -34,6 +54,7 @@ export function TransportTab({ admission, busRoutes }: Props) {
       required: req?.required ?? false,
       routeId: req?.routeId ?? "",
       stopId: req?.stopId ?? "",
+      busNo: req?.busNo ?? "",
       remarks: req?.remarks ?? "",
     },
   });
@@ -41,6 +62,7 @@ export function TransportTab({ admission, busRoutes }: Props) {
   const required = watch("required");
   const routeId = watch("routeId");
   const stopId = watch("stopId");
+  const busNo = watch("busNo");
 
   // Find selected route and its stops
   const selectedRoute = busRoutes.find((r: any) => r.id === routeId);
@@ -59,6 +81,10 @@ export function TransportTab({ admission, busRoutes }: Props) {
         toast.error("Please select a bus stop");
         return;
       }
+      if (!data.busNo) {
+        toast.error("Please select a bus number");
+        return;
+      }
     }
 
     setLoading(true);
@@ -67,6 +93,7 @@ export function TransportTab({ admission, busRoutes }: Props) {
         required: data.required,
         routeId: data.required ? data.routeId : null,
         stopId: data.required ? data.stopId : null,
+        busNo: data.required ? data.busNo : null,
         remarks: data.remarks || null,
       });
       toast.success("Transport details updated successfully");
@@ -81,6 +108,7 @@ export function TransportTab({ admission, busRoutes }: Props) {
   const handleRouteChange = (val: string) => {
     setValue("routeId", val);
     setValue("stopId", ""); // Reset stop selection when route changes
+    setValue("busNo", "");  // Reset bus number selection when route changes
   };
 
   return (
@@ -132,20 +160,19 @@ export function TransportTab({ admission, busRoutes }: Props) {
                     <div>
                       <dt className="text-xs text-muted-foreground font-medium flex items-center gap-1.5 mb-0.5">
                         <MapPin className="h-3.5 w-3.5" />
-                        Selected Route
+                        Selected Stage
                       </dt>
                       <dd className="font-semibold text-foreground">
-                        {req.route ? `${req.route.routeNo} - ${req.route.name}` : "-"}
+                        {req.route ? req.route.name : "-"}
                       </dd>
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground font-medium flex items-center gap-1.5 mb-0.5">
                         <MapPin className="h-3.5 w-3.5" />
-                        Selected Stop
+                        Selected Place Name
                       </dt>
                       <dd className="font-semibold text-foreground">
                         {req.stop ? req.stop.stopName : "-"}
-                        {req.stop?.stage ? ` (Stage ${req.stop.stage})` : ""}
                       </dd>
                     </div>
                   </dl>
@@ -153,12 +180,20 @@ export function TransportTab({ admission, busRoutes }: Props) {
                   <dl className="grid grid-cols-1 gap-y-3 text-sm">
                     <div>
                       <dt className="text-xs text-muted-foreground font-medium flex items-center gap-1.5 mb-0.5">
-                        <Clock className="h-3.5 w-3.5" />
-                        Estimated Timings
+                        <MapPin className="h-3.5 w-3.5" />
+                        Distance (Km)
                       </dt>
-                      <dd className="font-semibold text-foreground flex gap-4">
-                        <span>Pickup: {req.stop?.pickupTime || "-"}</span>
-                        <span>Drop: {req.stop?.dropTime || "-"}</span>
+                      <dd className="font-semibold text-foreground">
+                        {req.stop?.distance || "-"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground font-medium flex items-center gap-1.5 mb-0.5">
+                        <Bus className="h-3.5 w-3.5" />
+                        Assigned Bus Number
+                      </dt>
+                      <dd className="font-semibold text-foreground">
+                        {req.busNo || "-"}
                       </dd>
                     </div>
                     <div>
@@ -196,15 +231,15 @@ export function TransportTab({ admission, busRoutes }: Props) {
               {required && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/10 space-y-1 md:space-y-0">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Select Route</Label>
+                    <Label className="text-xs font-semibold">Select Stage</Label>
                     <Select value={routeId} onValueChange={handleRouteChange}>
                       <SelectTrigger className="bg-background">
-                        <SelectValue placeholder="Choose a route..." />
+                        <SelectValue placeholder="Choose a stage..." />
                       </SelectTrigger>
                       <SelectContent>
                         {busRoutes.map((r) => (
                           <SelectItem key={r.id} value={r.id}>
-                            {r.routeNo} - {r.name}
+                            {r.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -212,19 +247,39 @@ export function TransportTab({ admission, busRoutes }: Props) {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Select Stop</Label>
+                    <Label className="text-xs font-semibold">Select Place Name</Label>
                     <Select
                       value={stopId}
                       onValueChange={(val) => setValue("stopId", val)}
                       disabled={!routeId}
                     >
                       <SelectTrigger className="bg-background">
-                        <SelectValue placeholder={routeId ? "Choose a stop..." : "Select route first"} />
+                        <SelectValue placeholder={routeId ? "Choose a place..." : "Select stage first"} />
                       </SelectTrigger>
                       <SelectContent>
                         {stops.map((s: any) => (
                           <SelectItem key={s.id} value={s.id}>
-                            {s.stopName} {s.stage ? `(Stage ${s.stage})` : ""}
+                            {s.stopName} {s.distance ? `(${s.distance})` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Select Bus Number</Label>
+                    <Select
+                      value={busNo}
+                      onValueChange={(val) => setValue("busNo", val)}
+                      disabled={!routeId}
+                    >
+                      <SelectTrigger className="bg-background">
+                        <SelectValue placeholder={routeId ? "Choose a bus..." : "Select stage first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BUS_LIST.map((bus) => (
+                          <SelectItem key={bus} value={bus}>
+                            {bus}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -234,12 +289,11 @@ export function TransportTab({ admission, busRoutes }: Props) {
                   {selectedStop && (
                     <div className="col-span-1 md:col-span-2 mt-2 bg-primary/5 border border-primary/10 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
                       <div className="flex items-center gap-1.5 font-medium text-foreground">
-                        <Clock className="h-4 w-4 text-primary" />
-                        <span>Schedule:</span>
+                        <MapPin className="h-4 w-4 text-primary" />
+                        <span>Distance Details:</span>
                       </div>
                       <div className="flex gap-4 font-semibold">
-                        <span className="bg-background px-2 py-0.5 rounded border">Pickup: {selectedStop.pickupTime || "-"}</span>
-                        <span className="bg-background px-2 py-0.5 rounded border">Drop: {selectedStop.dropTime || "-"}</span>
+                        <span className="bg-background px-2 py-0.5 rounded border">Kilo Metre: {selectedStop.distance || "-"}</span>
                       </div>
                     </div>
                   )}

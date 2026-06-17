@@ -581,6 +581,7 @@ export async function saveTransportRequest(
     required: boolean;
     routeId?: string | null;
     stopId?: string | null;
+    busNo?: string | null;
     remarks?: string | null;
   }
 ) {
@@ -599,6 +600,7 @@ export async function saveTransportRequest(
         required: data.required,
         routeId: data.required ? data.routeId : null,
         stopId: data.required ? data.stopId : null,
+        busNo: data.required ? data.busNo : null,
         remarks: data.remarks ?? null,
       },
       create: {
@@ -606,18 +608,17 @@ export async function saveTransportRequest(
         required: data.required,
         routeId: data.required ? data.routeId : null,
         stopId: data.required ? data.stopId : null,
+        busNo: data.required ? data.busNo : null,
         remarks: data.remarks ?? null,
       },
     });
-
-
 
     await createAuditLog({
       actorUserId: session.user.id,
       action: "UPDATE_TRANSPORT",
       entityType: "AdmissionApplication",
       entityId: admissionId,
-      newValue: { required: data.required, routeId: data.routeId, stopId: data.stopId },
+      newValue: { required: data.required, routeId: data.routeId, stopId: data.stopId, busNo: data.busNo },
     });
 
     revalidatePath(`/admissions/${admissionId}`);

@@ -100,9 +100,10 @@ export default async function AdmissionsPage({ searchParams }: { searchParams: S
                 <th className="px-4 py-3 font-medium">Student Name</th>
                 <th className="px-4 py-3 font-medium">Grade</th>
                 <th className="px-4 py-3 font-medium">Campus</th>
-                <th className="px-4 py-3 font-medium">Bus Route</th>
-                <th className="px-4 py-3 font-medium">Bus Stop</th>
-                <th className="px-4 py-3 font-medium">Timings (Pickup / Drop)</th>
+                <th className="px-4 py-3 font-medium">Stage</th>
+                <th className="px-4 py-3 font-medium">Place Name</th>
+                <th className="px-4 py-3 font-medium">Distance</th>
+                <th className="px-4 py-3 font-medium">Bus Number</th>
                 <th className="px-4 py-3 font-medium">Remarks</th>
               </tr>
             </thead>
@@ -113,11 +114,14 @@ export default async function AdmissionsPage({ searchParams }: { searchParams: S
                   <td className="px-4 py-3">{t.admission.grade.name}</td>
                   <td className="px-4 py-3">{t.admission.campus.name}</td>
                   <td className="px-4 py-3 font-medium text-blue-700">
-                    {t.route ? `${t.route.routeNo} - ${t.route.name}` : "-"}
+                    {t.route ? t.route.name : "-"}
                   </td>
                   <td className="px-4 py-3">{t.stop?.stopName || "-"}</td>
-                  <td className="px-4 py-3 text-xs">
-                    {t.stop ? `${t.stop.pickupTime} / ${t.stop.dropTime}` : "-"}
+                  <td className="px-4 py-3">
+                    {t.stop?.distance || "-"}
+                  </td>
+                  <td className="px-4 py-3 font-semibold">
+                    {t.busNo || "-"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground italic text-xs">
                     {t.remarks || "-"}
@@ -126,7 +130,7 @@ export default async function AdmissionsPage({ searchParams }: { searchParams: S
               ))}
               {filteredTransport.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                     No matching student transport records found.
                   </td>
                 </tr>

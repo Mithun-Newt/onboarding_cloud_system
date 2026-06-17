@@ -280,18 +280,22 @@ export default async function PrintAdmissionPage({ params }: { params: { id: str
           {admission.transportReq?.required ? (
             <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
               <div>
-                <dt className="text-gray-500">Route Number & Name</dt>
-                <dd className="font-semibold">{admission.transportReq.route ? `${admission.transportReq.route.routeNo} - ${admission.transportReq.route.name}` : "-"}</dd>
+                <dt className="text-gray-500">Stage</dt>
+                <dd className="font-semibold">{admission.transportReq.route ? admission.transportReq.route.name : "-"}</dd>
               </div>
               <div>
-                <dt className="text-gray-500">Stop Name</dt>
+                <dt className="text-gray-500">Place Name</dt>
                 <dd className="font-semibold">{admission.transportReq.stop?.stopName || "-"}</dd>
               </div>
               <div>
-                <dt className="text-gray-500">Timings (Pickup / Drop)</dt>
-                <dd className="font-semibold">{admission.transportReq.stop ? `${admission.transportReq.stop.pickupTime} / ${admission.transportReq.stop.dropTime}` : "-"}</dd>
+                <dt className="text-gray-500">Distance (Km)</dt>
+                <dd className="font-semibold">{admission.transportReq.stop?.distance || "-"}</dd>
               </div>
               <div>
+                <dt className="text-gray-500">Bus Number</dt>
+                <dd className="font-semibold">{admission.transportReq.busNo || "-"}</dd>
+              </div>
+              <div className="col-span-2">
                 <dt className="text-gray-500">Remarks</dt>
                 <dd className="font-semibold">{admission.transportReq.remarks || "-"}</dd>
               </div>

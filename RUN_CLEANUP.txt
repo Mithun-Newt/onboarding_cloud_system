@@ -1,0 +1,37 @@
+QUICK CLEANUP INSTRUCTIONS
+===========================
+
+Copy and paste this into your Command Prompt (cmd.exe) or PowerShell:
+
+cd "C:\Users\mithu\OneDrive\Desktop\Onboarding - Copy" && node cleanup.js
+
+What this will do:
+✓ Find all duplicate admissions
+✓ Delete the duplicates (keeps first one)
+✓ Find test registrations (Akhil, Mithun, etc.)
+✓ Ask/confirm before deleting test registrations
+✓ Remove associated payments, documents, etc.
+✓ Show summary of deleted records
+
+Expected output:
+- "Found registration 'Akhil' (REG-2826-0002) with 2 admissions"
+  └ Deleting duplicate admission...
+- "Found registration 'Mithun' (REG-2826-0001) with 2 admissions"
+  └ Deleting duplicate admission...
+- "Found test registrations to delete..."
+  └ Deleting registration: 'Akhil'...
+  └ Deleting registration: 'Mithun'...
+- "=== CLEANUP SUMMARY ==="
+  └ "Duplicate admissions deleted: 2"
+  └ "Test registrations deleted: 2"
+  └ "Cleanup completed successfully!"
+
+Step by step:
+1. Open Command Prompt (search for "cmd" in Start menu)
+2. Copy the command above
+3. Paste it into Command Prompt
+4. Press Enter
+5. Wait for completion (should take 10-30 seconds)
+6. When done, type "exit" to close Command Prompt
+
+That's it! The cleanup will be complete.
