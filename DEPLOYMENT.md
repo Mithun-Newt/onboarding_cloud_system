@@ -485,10 +485,10 @@ psql -U postgres -d school_admissions
 build_and_deploy.bat stop
 
 :: Also remove data volumes (DELETES ALL DATA — irreversible)
-docker compose -f docker-compose.local.yml down -v
+docker compose down -v
 
 :: Remove the built image
-docker rmi junior-school-admissions-app
+docker rmi school_app
 ```
 
 ### No Docker (NSSM service)

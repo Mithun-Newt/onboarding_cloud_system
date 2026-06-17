@@ -843,6 +843,30 @@ async function main() {
     }
   }
 
+  // Cohort Strengths seeding
+  const cohortStrengths = [
+    { className: "KG 1 (PRE-KG)", promotedStrength: 0, tc: 0, newAdmission: 47, target: 60, sortOrder: 1, academicYearId: academicYear.id },
+    { className: "KG 2 (JKG)", promotedStrength: 34, tc: 1, newAdmission: 36, target: 70, sortOrder: 2, academicYearId: academicYear.id },
+    { className: "KG 3 (SKG)", promotedStrength: 50, tc: 6, newAdmission: 10, target: 70, sortOrder: 3, academicYearId: academicYear.id },
+    { className: "Grade 1 - YAAZH", promotedStrength: 45, tc: 0, newAdmission: 2, target: 35, sortOrder: 4, academicYearId: academicYear.id },
+    { className: "Grade 1 (ACS)", promotedStrength: 29, tc: 0, newAdmission: 1, target: 30, sortOrder: 5, academicYearId: academicYear.id },
+    { className: "Grade 2 (YAAZH & VEENAI)", promotedStrength: 49, tc: 0, newAdmission: 11, target: 70, sortOrder: 6, academicYearId: academicYear.id },
+    { className: "Grade 2 (ACS)", promotedStrength: 28, tc: 1, newAdmission: 0, target: 30, sortOrder: 7, academicYearId: academicYear.id },
+  ];
+
+  for (const c of cohortStrengths) {
+    await prisma.cohortStrength.upsert({
+      where: {
+        className_academicYearId: {
+          className: c.className,
+          academicYearId: c.academicYearId,
+        },
+      },
+      update: {},
+      create: c,
+    });
+  }
+
   console.log("✅ Database seeded successfully.");
 }
 

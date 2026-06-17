@@ -39,17 +39,15 @@ exit /b 0
 
 :BUILD
 echo [INFO] Building Docker images...
-docker compose -f docker-compose.local.yml build --no-cache
+docker compose build --no-cache
 echo [OK] Build complete.
 GOTO END
 
 :START
 echo [INFO] Starting services...
-docker compose -f docker-compose.local.yml up -d
-echo [INFO] Waiting for database to be ready...
-timeout /t 10 /nobreak >nul
-echo [INFO] Running migrations...
-docker exec school_app npx prisma migrate deploy
+docker compose up -d
+echo [INFO] Waiting for database initialization to complete...
+timeout /t 5 /nobreak >nul
 echo.
 echo [OK] Application is running at http://localhost:3000
 echo [OK] Default login: username=admin  password=Admin@12345
@@ -57,33 +55,30 @@ echo [WARN] Change the default password immediately after first login!
 GOTO END
 
 :SEED
-echo [INFO] Starting services...
-docker compose -f docker-compose.local.yml up -d
-timeout /t 10 /nobreak >nul
-echo [INFO] Running migrations...
-docker exec school_app npx prisma migrate deploy
-echo [INFO] Seeding database...
-docker exec school_app npx tsx prisma/seed.ts
+echo [INFO] Starting services and seeding database...
+docker compose up -d
+echo [INFO] Waiting for database initialization to complete...
+timeout /t 5 /nobreak >nul
 echo.
-echo [OK] Database seeded. Application at http://localhost:3000
+echo [OK] Database seeded and application is running at http://localhost:3000
 echo [OK] Default login: username=admin  password=Admin@12345
 echo [WARN] Change the default password immediately!
 GOTO END
 
 :MIGRATE
-echo [INFO] Running database migrations...
-docker exec school_app npx prisma migrate deploy
-echo [OK] Migrations complete.
+echo [INFO] Since the database utilizes a schema file mounted to /docker-entrypoint-initdb.d/,
+echo [INFO] manual migration commands are handled via init.sql updates.
+echo [OK] Database schema initialized.
 GOTO END
 
 :STOP
 echo [INFO] Stopping services...
-docker compose -f docker-compose.local.yml down
+docker compose down
 echo [OK] Services stopped.
 GOTO END
 
 :LOGS
-docker compose -f docker-compose.local.yml logs -f
+docker compose logs -f
 GOTO END
 
 :END

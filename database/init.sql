@@ -479,6 +479,20 @@ CREATE TABLE IF NOT EXISTS app_settings (
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS cohort_strengths (
+    id                 TEXT        PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    "className"        TEXT        NOT NULL,
+    "promotedStrength" INT         NOT NULL DEFAULT 0,
+    tc                 INT         NOT NULL DEFAULT 0,
+    "newAdmission"     INT         NOT NULL DEFAULT 0,
+    target             INT         NOT NULL DEFAULT 0,
+    "sortOrder"        INT         NOT NULL DEFAULT 0,
+    "academicYearId"   TEXT        NOT NULL REFERENCES academic_years(id) ON DELETE CASCADE,
+    "createdAt"        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt"        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE ("className", "academicYearId")
+);
+
 -- ---------------------------------------------------------------------------
 -- Indexes
 -- ---------------------------------------------------------------------------
@@ -618,8 +632,10 @@ DECLARE
     v_grade_prekg     TEXT := 'seed-grade-prekg';
     v_grade_lkg       TEXT := 'seed-grade-lkg';
     v_grade_ukg       TEXT := 'seed-grade-ukg';
-    v_grade_g1        TEXT := 'seed-grade-1';
-    v_grade_g2        TEXT := 'seed-grade-2';
+    v_grade_g1_yaazh  TEXT := 'seed-grade-1-yaazh';
+    v_grade_g1_acs    TEXT := 'seed-grade-1-acs';
+    v_grade_g2_yv     TEXT := 'seed-grade-2-yaazh-veenai';
+    v_grade_g2_acs    TEXT := 'seed-grade-2-acs';
     v_role_sysadmin   TEXT := 'seed-role-sysadmin';
     v_role_tic        TEXT := 'seed-role-tic';
     v_role_adm        TEXT := 'seed-role-adm';
@@ -646,21 +662,25 @@ BEGIN
 
     -- Grades
     INSERT INTO grades (id, name, "sortOrder", "isActive") VALUES
-        (v_grade_prekg, 'Pre-KG',  1, TRUE),
-        (v_grade_lkg,   'LKG',     2, TRUE),
-        (v_grade_ukg,   'UKG',     3, TRUE),
-        (v_grade_g1,    'Grade 1', 4, TRUE),
-        (v_grade_g2,    'Grade 2', 5, TRUE)
+        (v_grade_prekg,    'KG 1 (PRE-KG)',            1, TRUE),
+        (v_grade_lkg,      'KG 2 (JKG)',               2, TRUE),
+        (v_grade_ukg,      'KG 3 (SKG)',               3, TRUE),
+        (v_grade_g1_yaazh, 'Grade 1 - YAAZH',          4, TRUE),
+        (v_grade_g1_acs,   'Grade 1 (ACS)',            5, TRUE),
+        (v_grade_g2_yv,    'Grade 2 (YAAZH & VEENAI)', 6, TRUE),
+        (v_grade_g2_acs,   'Grade 2 (ACS)',            7, TRUE)
     ON CONFLICT (id) DO NOTHING;
 
     -- Seat capacity: 40 per grade for the default campus + academic year
     INSERT INTO grade_seat_capacity ("academicYearId", "gradeId", "campusId", "totalSeats")
     VALUES
-        (v_ay_id, v_grade_prekg, v_campus_id, 40),
-        (v_ay_id, v_grade_lkg,   v_campus_id, 40),
-        (v_ay_id, v_grade_ukg,   v_campus_id, 40),
-        (v_ay_id, v_grade_g1,    v_campus_id, 40),
-        (v_ay_id, v_grade_g2,    v_campus_id, 40)
+        (v_ay_id, v_grade_prekg,    v_campus_id, 40),
+        (v_ay_id, v_grade_lkg,      v_campus_id, 40),
+        (v_ay_id, v_grade_ukg,      v_campus_id, 40),
+        (v_ay_id, v_grade_g1_yaazh, v_campus_id, 40),
+        (v_ay_id, v_grade_g1_acs,   v_campus_id, 40),
+        (v_ay_id, v_grade_g2_yv,    v_campus_id, 40),
+        (v_ay_id, v_grade_g2_acs,   v_campus_id, 40)
     ON CONFLICT ("academicYearId", "gradeId", "campusId") DO NOTHING;
 
     -- Roles
@@ -738,6 +758,18 @@ BEGIN
         ('current_academic_year', '2026-27',       'Current Academic Year Label'),
         ('max_file_size_mb',      '5',             'Max Upload File Size (MB)')
     ON CONFLICT (key) DO NOTHING;
+
+    -- Cohort Strengths
+    INSERT INTO cohort_strengths ("className", "promotedStrength", tc, "newAdmission", target, "sortOrder", "academicYearId")
+    VALUES
+        ('KG 1 (PRE-KG)',            0,  0, 47, 60, 1, v_ay_id),
+        ('KG 2 (JKG)',               34, 1, 36, 70, 2, v_ay_id),
+        ('KG 3 (SKG)',               50, 6, 10, 70, 3, v_ay_id),
+        ('Grade 1 - YAAZH',          45, 0, 2,  35, 4, v_ay_id),
+        ('Grade 1 (ACS)',            29, 0, 1,  30, 5, v_ay_id),
+        ('Grade 2 (YAAZH & VEENAI)', 49, 0, 11, 70, 6, v_ay_id),
+        ('Grade 2 (ACS)',            28, 1, 0,  30, 7, v_ay_id)
+    ON CONFLICT ("className", "academicYearId") DO NOTHING;
 
 END $$;
 
