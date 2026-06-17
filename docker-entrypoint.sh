@@ -3,11 +3,9 @@ set -e
 
 echo "Starting deployment checks..."
 
-echo "Running Prisma migrations..."
-npx --no-install prisma migrate deploy
-
-echo "Running Database seeds..."
-npx --no-install tsx prisma/seed.ts
+# Note: The database schema, views, and initial seed data are automatically 
+# created by PostgreSQL using the database/init.sql initialization script 
+# mounted in docker-compose.yml.
 
 echo "Starting Next.js application..."
 exec "$@"
