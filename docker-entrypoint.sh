@@ -4,10 +4,10 @@ set -e
 echo "Starting deployment checks..."
 
 echo "Running Prisma migrations..."
-prisma migrate deploy
+npx --no-install prisma migrate deploy
 
 echo "Running Database seeds..."
-tsx prisma/seed.ts
+npx --no-install tsx prisma/seed.ts
 
 echo "Starting Next.js application..."
 exec "$@"
