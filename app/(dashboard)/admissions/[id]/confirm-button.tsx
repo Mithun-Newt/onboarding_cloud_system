@@ -26,8 +26,12 @@ export function ConfirmAdmissionButton({ admissionId }: { admissionId: string })
     setLoading(true);
     try {
       const result = await confirmAdmission(admissionId);
-      toast.success(`Admission confirmed: ${result.admissionNo}`);
-      router.refresh();
+      if (result.success) {
+        toast.success(`Admission confirmed: ${result.admissionNo}`);
+        router.refresh();
+      } else {
+        toast.error(result.error || "Cannot confirm admission");
+      }
     } catch (err: any) {
       toast.error(err.message || "Cannot confirm admission");
     } finally {

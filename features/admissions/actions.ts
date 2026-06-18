@@ -326,11 +326,12 @@ export async function updateAdmissionMedical(admissionId: string, data: any) {
 }
 
 export async function confirmAdmission(admissionId: string) {
-  const session = await requireRole([
-    RoleName.SYSTEM_ADMIN,
-    RoleName.TIC,
-    RoleName.ADMISSION_STAFF,
-  ]);
+  try {
+    const session = await requireRole([
+      RoleName.SYSTEM_ADMIN,
+      RoleName.TIC,
+      RoleName.ADMISSION_STAFF,
+    ]);
 
   const admission = await prisma.admissionApplication.findUnique({
     where: { id: admissionId },
@@ -471,9 +472,12 @@ export async function confirmAdmission(admissionId: string) {
     newValue: { admissionNo },
   });
 
-  revalidatePath("/admissions");
-  revalidatePath(`/admissions/${admissionId}`);
-  return { admissionNo };
+    revalidatePath("/admissions");
+    revalidatePath(`/admissions/${admissionId}`);
+    return { success: true, admissionNo };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to confirm admission" };
+  }
 }
 
 export async function cancelAdmission(admissionId: string, reason: string) {
