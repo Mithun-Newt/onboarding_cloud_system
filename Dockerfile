@@ -11,6 +11,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
+ARG NEXT_PUBLIC_SCHOOL_NAME="Appu Arivaalayam"
+ENV NEXT_PUBLIC_SCHOOL_NAME=$NEXT_PUBLIC_SCHOOL_NAME
+ARG NEXT_PUBLIC_APP_NAME="Student Onboarding Platform"
+ENV NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME
 RUN npm run build
 
 FROM base AS runner

@@ -24,6 +24,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SCHOOL_NAME: ${NEXT_PUBLIC_SCHOOL_NAME:-Appu Arivaalayam}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-Student Onboarding Platform}
     container_name: school_app
     restart: unless-stopped
     depends_on:
