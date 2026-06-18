@@ -93,7 +93,7 @@ export default function LoginPage() {
           
           {/* School Name */}
           <h1 className="text-3xl font-bold text-green-700">
-            {process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}
+            {process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayam"}
           </h1>
           
           {/* Subtitle */}

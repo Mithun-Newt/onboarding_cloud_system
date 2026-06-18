@@ -52,7 +52,7 @@ export default async function PrintReceiptPage({
             className="h-16 w-16 object-contain"
           />
           <div className="text-left">
-            <h1 className="text-xl font-bold">{process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}</h1>
+            <h1 className="text-xl font-bold">{process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayam"}</h1>
             <p className="text-xs text-gray-500">{payment.admission.campus.name}</p>
             <p className="text-xs text-gray-500">Academic Year: {payment.admission.academicYear.label}</p>
           </div>

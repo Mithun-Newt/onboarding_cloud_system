@@ -429,7 +429,7 @@ export function PaymentsTab({ admission }: { admission: any }) {
                 className="h-12 w-12 object-contain"
               />
               <div className="text-left">
-                <h1 className="text-sm font-bold">{process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}</h1>
+                <h1 className="text-sm font-bold">{process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayam"}</h1>
                 <p className="text-[10px] text-muted-foreground">{admission.campus.name}</p>
                 <p className="text-[10px] text-muted-foreground">Academic Year: {admission.academicYear.label}</p>
               </div>

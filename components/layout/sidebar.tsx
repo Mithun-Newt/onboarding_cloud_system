@@ -70,7 +70,7 @@ export function Sidebar() {
         />
         <div className="flex-1">
           <p className="text-sm font-bold leading-tight text-green-700">
-            {process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}
+            {process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayam"}
           </p>
           <p className="text-xs text-gray-600">Student Onboarding Platform</p>
         </div>

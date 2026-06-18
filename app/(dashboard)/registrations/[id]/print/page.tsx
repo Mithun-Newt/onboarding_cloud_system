@@ -25,7 +25,7 @@ export default async function PrintRegistrationPage({ params }: { params: { id: 
             className="h-16 w-16 object-contain"
           />
           <div className="text-left">
-            <h1 className="text-2xl font-bold">{process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayem"}</h1>
+            <h1 className="text-2xl font-bold">{process.env.NEXT_PUBLIC_SCHOOL_NAME || "Appu Arivaalayam"}</h1>
             <p className="text-lg font-semibold text-blue-700 mt-0.5">Registration Acknowledgement</p>
             <p className="text-sm text-gray-500">{reg.campus.name} · {reg.academicYear.label}</p>
           </div>

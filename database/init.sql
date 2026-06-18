@@ -880,7 +880,7 @@ BEGIN
 
     -- School
     INSERT INTO schools (id, name, address, phone, email, "updatedAt")
-    VALUES (v_school_id, 'Appu Arivaalayem', NULL, NULL, NULL, CURRENT_TIMESTAMP)
+    VALUES (v_school_id, 'Appu Arivaalayam', NULL, NULL, NULL, CURRENT_TIMESTAMP)
     ON CONFLICT (id) DO NOTHING;
 
     -- Campus
@@ -988,7 +988,7 @@ BEGIN
 
     -- App Settings
     INSERT INTO app_settings (id, key, value, label, "updatedAt") VALUES
-        (gen_random_uuid()::text, 'school_name',           'Appu Arivaalayem', 'School Display Name', CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'school_name',           'Appu Arivaalayam', 'School Display Name', CURRENT_TIMESTAMP),
         (gen_random_uuid()::text, 'current_academic_year', '2026-27',       'Current Academic Year Label', CURRENT_TIMESTAMP),
         (gen_random_uuid()::text, 'max_file_size_mb',      '5',             'Max Upload File Size (MB)', CURRENT_TIMESTAMP)
     ON CONFLICT (key) DO NOTHING;
