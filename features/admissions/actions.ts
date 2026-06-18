@@ -19,7 +19,7 @@ export async function createAdmission(registrationId: string) {
     if (!reg) throw new Error("Registration not found");
     if (reg.status === RegistrationStatus.ADMITTED) throw new Error("Already admitted");
     if (reg.status === RegistrationStatus.CANCELLED) throw new Error("Registration is cancelled");
-    if (reg.staffRemarks !== "ELIGIBLE") {
+    if (reg.staffRemarks?.toUpperCase() !== "ELIGIBLE") {
       throw new Error("Admission cannot be started because the registration is not marked as Eligible.");
     }
 

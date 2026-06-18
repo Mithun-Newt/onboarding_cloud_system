@@ -16,7 +16,7 @@ export function StartAdmissionButton({
   hasVacancy?: boolean;
 }) {
   const router = useRouter();
-  const isEligible = staffRemarks === "ELIGIBLE";
+  const isEligible = staffRemarks?.toUpperCase() === "ELIGIBLE";
   const isDisabled = !isEligible || !hasVacancy;
 
   let tooltip = undefined;

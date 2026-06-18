@@ -73,13 +73,13 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
     ["Special Details", reg.specialDetails ?? "-"],
     [
       "Staff Remarks",
-      !reg.staffRemarks || reg.staffRemarks === "NONE"
+      !reg.staffRemarks || reg.staffRemarks.toUpperCase() === "NONE"
         ? "-"
-        : reg.staffRemarks === "ELIGIBLE"
+        : reg.staffRemarks.toUpperCase() === "ELIGIBLE"
         ? "Eligible"
-        : reg.staffRemarks === "NOT_ELIGIBLE"
+        : reg.staffRemarks.toUpperCase() === "NOT_ELIGIBLE"
         ? "Not Eligible"
-        : reg.staffRemarks === "WAITING"
+        : reg.staffRemarks.toUpperCase() === "WAITING"
         ? "Waiting"
         : reg.staffRemarks
     ],
