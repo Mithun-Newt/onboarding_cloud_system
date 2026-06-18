@@ -17,13 +17,11 @@ export function StartAdmissionButton({
 }) {
   const router = useRouter();
   const isEligible = staffRemarks?.toUpperCase() === "ELIGIBLE";
-  const isDisabled = !isEligible || !hasVacancy;
+  const isDisabled = !isEligible;
 
   let tooltip = undefined;
   if (!isEligible) {
     tooltip = "Admission can only be started when Staff Remark is set to 'Eligible'";
-  } else if (!hasVacancy) {
-    tooltip = "No vacancy available for this class. Adjust dashboard targets first.";
   }
 
   return (

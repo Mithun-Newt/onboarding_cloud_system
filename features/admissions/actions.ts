@@ -29,11 +29,8 @@ export async function createAdmission(registrationId: string) {
     });
     if (existingAdmission) throw new Error("Admission already exists for this registration");
 
-    // Check if there is remaining vacancy for this grade
+    // Vacancy check removed to allow admission regardless of targets
     const vacancy = await getRemainingVacancyForGrade(reg.gradeId, reg.academicYearId);
-    if (vacancy <= 0) {
-      throw new Error(`No vacancy available for grade "${reg.grade.name}". Adjust targets on the dashboard to allow more admissions.`);
-    }
 
     // 1. Create family and guardians from registration details
     const family = await prisma.family.create({ data: {} });
