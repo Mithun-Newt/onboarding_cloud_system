@@ -132,16 +132,16 @@ export function RegistrationForm({
     if (standardEligible) {
       if (isWithinWindow && relaxationGrade && standardGrade !== relaxationGrade) {
         if (ageRelaxationValue) {
-          return `This Date of Birth is suitable for ${relaxationGrade} with age relaxation applied.`;
+          return `This Date of Birth is suitable for ${relaxationGrade} with age relaxation applied, as per CBSE (NEP 2023) age policy.`;
         }
-        return `This Date of Birth is perfect for ${standardGrade}. Age relaxation can be applied to change the grade to ${relaxationGrade}.`;
+        return `This Date of Birth is perfect for ${standardGrade}, as per CBSE (NEP 2023) age policy. Age relaxation can be applied to change the grade to ${relaxationGrade}.`;
       }
-      return `This Date of Birth is perfect for admission to ${standardGrade || "suitable grade"}.`;
+      return `This Date of Birth is perfect for admission to ${standardGrade || "suitable grade"}, as per CBSE (NEP 2023) age policy.`;
     }
 
     if (relaxationEligible && isWithinWindow) {
       if (ageRelaxationValue && relaxationGrade) {
-        return `This Date of Birth is suitable for ${relaxationGrade} with age relaxation applied.`;
+        return `This Date of Birth is suitable for ${relaxationGrade} with age relaxation applied, as per CBSE (NEP 2023) age policy.`;
       }
     }
 
