@@ -859,16 +859,32 @@ GROUP BY es.name;
 
 DO $$
 DECLARE
-    v_school_id       TEXT := 'school-default';
+v_school_id       TEXT := 'school-default';
     v_campus_id       TEXT := 'campus-main';
     v_ay_id           TEXT := 'seed-ay-2026-27';
-    v_grade_prekg     TEXT := 'seed-grade-prekg';
-    v_grade_lkg       TEXT := 'seed-grade-lkg';
-    v_grade_ukg       TEXT := 'seed-grade-ukg';
-    v_grade_g1_yaazh  TEXT := 'seed-grade-1-yaazh';
-    v_grade_g1_acs    TEXT := 'seed-grade-1-acs';
-    v_grade_g2_yv     TEXT := 'seed-grade-2-yaazh-veenai';
-    v_grade_g2_acs    TEXT := 'seed-grade-2-acs';
+    v_grade_0      TEXT := 'seed-grade-0';
+    v_grade_1      TEXT := 'seed-grade-1';
+    v_grade_2      TEXT := 'seed-grade-2';
+    v_grade_3      TEXT := 'seed-grade-3';
+    v_grade_4      TEXT := 'seed-grade-4';
+    v_grade_5      TEXT := 'seed-grade-5';
+    v_grade_6      TEXT := 'seed-grade-6';
+    v_grade_7      TEXT := 'seed-grade-7';
+    v_grade_8      TEXT := 'seed-grade-8';
+    v_grade_9      TEXT := 'seed-grade-9';
+    v_grade_10      TEXT := 'seed-grade-10';
+    v_grade_11      TEXT := 'seed-grade-11';
+    v_grade_12      TEXT := 'seed-grade-12';
+    v_grade_13      TEXT := 'seed-grade-13';
+    v_grade_14      TEXT := 'seed-grade-14';
+    v_grade_15      TEXT := 'seed-grade-15';
+    v_grade_16      TEXT := 'seed-grade-16';
+    v_grade_17      TEXT := 'seed-grade-17';
+    v_grade_18      TEXT := 'seed-grade-18';
+    v_grade_19      TEXT := 'seed-grade-19';
+    v_grade_20      TEXT := 'seed-grade-20';
+    v_grade_21      TEXT := 'seed-grade-21';
+
     v_role_sysadmin   TEXT := 'seed-role-sysadmin';
     v_role_tic        TEXT := 'seed-role-tic';
     v_role_adm        TEXT := 'seed-role-adm';
@@ -1024,15 +1040,30 @@ BEGIN
     ON CONFLICT (key) DO NOTHING;
 
     -- Cohort Strengths
-    INSERT INTO cohort_strengths (id, "className", "promotedStrength", tc, "newAdmission", target, "sortOrder", "academicYearId", "updatedAt")
+        INSERT INTO cohort_strengths (id, "className", "promotedStrength", tc, "newAdmission", target, "sortOrder", "academicYearId", "updatedAt")
     VALUES
-        (gen_random_uuid()::text, 'KG 1 (PRE-KG)',            0,  0, 47, 60, 1, v_ay_id, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, 'KG 2 (JKG)',               34, 1, 36, 70, 2, v_ay_id, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, 'KG 3 (SKG)',               50, 6, 10, 70, 3, v_ay_id, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, 'Grade 1 - YAAZH',          45, 0, 2,  35, 4, v_ay_id, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, 'Grade 1 (ACS)',            29, 0, 1,  30, 5, v_ay_id, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, 'Grade 2 (YAAZH & VEENAI)', 49, 0, 11, 70, 6, v_ay_id, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, 'Grade 2 (ACS)',            28, 1, 0,  30, 7, v_ay_id, CURRENT_TIMESTAMP)
+        (gen_random_uuid()::text, 'KG 1 (PRE-KG)', 0, 0, 50, 70, 1, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'KG 2 (JKG)', 34, 1, 35, 70, 2, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'KG 3 (SKG)', 50, 7, 10, 70, 3, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 1 - YAAZH', 45, 1, 2, 35, 4, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 1 (ACS)', 29, 0, 1, 30, 5, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 2 (YAAZH & VEENAI)', 49, 0, 12, 70, 6, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 2 (ACS)', 28, 1, 0, 30, 7, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 3', 62, 0, 9, 70, 8, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 3 (ACS)', 25, 0, 0, 30, 9, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 4', 40, 6, 1, 35, 10, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 4 (ACS)', 27, 1, 0, 30, 11, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 5 Yaazh', 39, 5, 3, 35, 12, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 5 (ACS)', 26, 2, 0, 30, 13, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 6', 71, 18, 12, 70, 14, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 7', 64, 6, 9, 70, 15, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 8', 64, 12, 7, 70, 16, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 9', 65, 8, 2, 70, 17, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 10', 67, 0, 1, 70, 18, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, 'Grade 11', 53, 22, 9, 60, 19, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, '12 Bio/Math', 19, 1, 0, 19, 20, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, '12 Math / CS', 18, 1, 0, 18, 21, v_ay_id, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, '12 Arts', 3, 1, 0, 3, 22, v_ay_id, CURRENT_TIMESTAMP)
     ON CONFLICT ("className", "academicYearId") DO NOTHING;
 
 END $$;
