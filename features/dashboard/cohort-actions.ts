@@ -23,23 +23,65 @@ return strengths;
   }
 }
 
-export async function saveCohortStrengths(academicYearId: string, rows: any[]) {
-  try {
-    await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
-
-    await prisma.$transaction(
-      rows.map((row) =>
-        prisma.cohortStrength.update({
-          where: { id: row.id },
-          data: {
-            promotedStrength: parseInt(row.promotedStrength) || 0,
-            tc: parseInt(row.tc) || 0,
-            newAdmission: parseInt(row.newAdmission) || 0,
-            target: parseInt(row.target) || 0,
-          },
+  export async function saveCohortStrengths(academicYearId: string, rows: any[]) {
+    try {
+      await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
+  
+      await prisma.$transaction(
+        rows.map((row) => {
+          const isNew = row.id.startsWith("new-");
+          if (isNew) {
+            return prisma.cohortStrength.create({
+              data: {
+                className: row.className,
+                promotedStrength: parseInt(row.promotedStrength) || 0,
+                tc: parseInt(row.tc) || 0,
+                newAdmission: parseInt(row.newAdmission) || 0,
+                target: parseInt(row.target) || 0,
+                sortOrder: row.sortOrder,
+                academicYearId: academicYearId,
+              }
+            });
+          } else {
+            return prisma.cohortStrength.update({
+              where: { id: row.id },
+              data: {
+                promotedStrength: parseInt(row.promotedStrength) || 0,
+                tc: parseInt(row.tc) || 0,
+                newAdmission: parseInt(row.newAdmission) || 0,
+                target: parseInt(row.target) || 0,
+              },
+            });
+          }
         })
-      )
-    );
+      );
+
+      // Also sync targets to GradeSeatCapacity for reports and other logic
+      const grades = await prisma.grade.findMany();
+      const campus = await prisma.campus.findFirst();
+      if (campus) {
+        for (const row of rows) {
+          const grade = grades.find(g => g.name === row.className);
+          if (grade) {
+            await prisma.gradeSeatCapacity.upsert({
+              where: {
+                academicYearId_gradeId_campusId: {
+                  academicYearId,
+                  gradeId: grade.id,
+                  campusId: campus.id
+                }
+              },
+              update: { totalSeats: parseInt(row.target) || 0 },
+              create: {
+                academicYearId,
+                gradeId: grade.id,
+                campusId: campus.id,
+                totalSeats: parseInt(row.target) || 0
+              }
+            });
+          }
+        }
+      }
 
     revalidatePath("/dashboard");
     return { success: true };
@@ -183,13 +225,14 @@ export async function getRolloverStrengths(academicYearId: string) {
     
     const resultRows = orderedGrades.map(g => {
       const existing = currentStrengths.find(c => c.className === g.name);
+      const previous = previousStrengths.find(c => c.className === g.name);
       return {
         id: existing?.id || "new-" + g.id,
         className: g.name,
         promotedStrength: newPromotedStrengths[g.name] || 0,
         tc: 0,
         newAdmission: 0,
-        target: existing?.target || 70, // Maintain existing target or default
+        target: existing?.target || previous?.target || 70, // Maintain existing target or copy from previous year
         sortOrder: g.sortOrder,
         academicYearId,
       };
