@@ -12,33 +12,11 @@ export async function getCohortStrengths(academicYearId: string) {
       orderBy: { sortOrder: "asc" },
     });
 
+    
     if (strengths.length === 0) {
-      // Pre-populate with screenshots default values
-      const defaultData = [
-        { className: "KG 1 (PRE-KG)", promotedStrength: 0, tc: 0, newAdmission: 47, target: 60, sortOrder: 1 },
-        { className: "KG 2 (JKG)", promotedStrength: 34, tc: 1, newAdmission: 36, target: 70, sortOrder: 2 },
-        { className: "KG 3 (SKG)", promotedStrength: 50, tc: 6, newAdmission: 10, target: 70, sortOrder: 3 },
-        { className: "Grade 1 - YAAZH", promotedStrength: 45, tc: 0, newAdmission: 2, target: 35, sortOrder: 4 },
-        { className: "Grade 1 (ACS)", promotedStrength: 29, tc: 0, newAdmission: 1, target: 30, sortOrder: 5 },
-        { className: "Grade 2 (YAAZH & VEENAI)", promotedStrength: 49, tc: 0, newAdmission: 11, target: 70, sortOrder: 6 },
-        { className: "Grade 2 (ACS)", promotedStrength: 28, tc: 1, newAdmission: 0, target: 30, sortOrder: 7 },
-      ];
-
-      await prisma.$transaction(
-        defaultData.map((row) =>
-          prisma.cohortStrength.create({
-            data: { ...row, academicYearId },
-          })
-        )
-      );
-
-      strengths = await prisma.cohortStrength.findMany({
-        where: { academicYearId },
-        orderBy: { sortOrder: "asc" },
-      });
+      // Return empty array, let user Rollover or wait for seed
     }
-
-    return strengths;
+return strengths;
   } catch (err: any) {
     console.error("Error fetching cohort strengths:", err);
     return [];
@@ -111,5 +89,115 @@ export async function deleteCohortRow(rowId: string) {
   } catch (err: any) {
     console.error("Error deleting cohort row:", err);
     throw new Error(err.message || "Failed to delete cohort row");
+  }
+}
+
+export async function getRolloverStrengths(academicYearId: string) {
+  try {
+    await requireRole([RoleName.SYSTEM_ADMIN, RoleName.TIC, RoleName.ADMISSION_STAFF]);
+
+    // Find the current year details
+    const targetYear = await prisma.academicYear.findUnique({ where: { id: academicYearId } });
+    if (!targetYear) throw new Error("Academic year not found");
+
+    // Find the immediately preceding year
+    const previousYear = await prisma.academicYear.findFirst({
+      where: { startYear: targetYear.startYear - 1 },
+    });
+
+    if (!previousYear) {
+      throw new Error("No previous academic year found to rollover from");
+    }
+
+    // Get the previous year's cohort strengths
+    const previousStrengths = await prisma.cohortStrength.findMany({
+      where: { academicYearId: previousYear.id },
+    });
+
+    if (previousStrengths.length === 0) {
+      throw new Error("Previous academic year has no cohort data");
+    }
+
+    // Also need the actual confirmed admissions from the previous year
+    const previousAdmissions = await prisma.admissionApplication.groupBy({
+      by: ["gradeId"],
+      where: { academicYearId: previousYear.id, status: "CONFIRMED" },
+      _count: { id: true },
+    });
+
+    const grades = await prisma.grade.findMany();
+    const admittedByGrade = previousAdmissions.reduce((acc, a) => {
+      acc[a.gradeId] = a._count.id;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Calculate the final Achieved numbers for the previous year
+    const previousAchieved: Record<string, number> = {};
+    for (const c of previousStrengths) {
+      const grade = grades.find(g => g.name === c.className);
+      const admitted = grade ? (admittedByGrade[grade.id] || 0) : 0;
+      previousAchieved[c.className] = c.promotedStrength - c.tc + c.newAdmission + admitted;
+    }
+
+    // Define the progression mapping
+    // Format: oldClassName -> newClassName
+    const progressionMap: Record<string, string> = {
+      "KG 1 (PRE-KG)": "KG 2 (JKG)",
+      "KG 2 (JKG)": "KG 3 (SKG)",
+      "KG 3 (SKG)": "Grade 1 - YAAZH", // Can be manually split to Grade 1 ACS by user
+      "Grade 1 - YAAZH": "Grade 2 (YAAZH & VEENAI)",
+      "Grade 1 (ACS)": "Grade 2 (ACS)",
+      "Grade 2 (YAAZH & VEENAI)": "Grade 3",
+      "Grade 2 (ACS)": "Grade 3 (ACS)",
+      "Grade 3": "Grade 4",
+      "Grade 3 (ACS)": "Grade 4 (ACS)",
+      "Grade 4": "Grade 5 Yaazh",
+      "Grade 4 (ACS)": "Grade 5 (ACS)",
+      "Grade 5 Yaazh": "Grade 6",
+      "Grade 5 (ACS)": "Grade 6", // Merging ACS back to main or separate? Assuming merging to main for now.
+      "Grade 6": "Grade 7",
+      "Grade 7": "Grade 8",
+      "Grade 8": "Grade 9",
+      "Grade 9": "Grade 10",
+      "Grade 10": "Grade 11",
+      "Grade 11": "12 Bio/Math", // Let user split into Math/CS and Arts
+    };
+
+    // Calculate new Promoted Strengths
+    const newPromotedStrengths: Record<string, number> = {};
+    for (const [oldClass, newClass] of Object.entries(progressionMap)) {
+      if (previousAchieved[oldClass]) {
+        newPromotedStrengths[newClass] = (newPromotedStrengths[newClass] || 0) + previousAchieved[oldClass];
+      }
+    }
+
+    // Return the newly mapped rows (but don't save to DB yet)
+    // We fetch the current target year rows to maintain IDs if they exist, or generate temporary ones
+    const currentStrengths = await prisma.cohortStrength.findMany({
+      where: { academicYearId },
+      orderBy: { sortOrder: "asc" },
+    });
+
+    // If current strengths are empty, we map them based on the 22 grades
+    const orderedGrades = [...grades].sort((a, b) => a.sortOrder - b.sortOrder);
+    
+    const resultRows = orderedGrades.map(g => {
+      const existing = currentStrengths.find(c => c.className === g.name);
+      return {
+        id: existing?.id || "new-" + g.id,
+        className: g.name,
+        promotedStrength: newPromotedStrengths[g.name] || 0,
+        tc: 0,
+        newAdmission: 0,
+        target: existing?.target || 70, // Maintain existing target or default
+        sortOrder: g.sortOrder,
+        academicYearId,
+      };
+    });
+
+    return { success: true, data: resultRows };
+  } catch (err: any) {
+    console.error("Error calculating rollover strengths:", err);
+    throw new Error(err.message || "Failed to calculate rollover strengths");
   }
 }

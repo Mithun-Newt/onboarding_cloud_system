@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Save, Loader2, Edit2, X } from "lucide-react";
+import { Save, Loader2, Edit2, X, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { saveCohortStrengths } from "@/features/dashboard/cohort-actions";
+import { saveCohortStrengths, getRolloverStrengths } from "@/features/dashboard/cohort-actions";
 
 interface CohortRow {
   id: string;
@@ -76,6 +76,25 @@ export function CohortTable({
     });
   };
 
+  
+  const handleRollover = () => {
+    if (!academicYearId) return;
+    if (!confirm("This will load the final Achieved strengths from the previous academic year. Any unsaved changes will be lost. Proceed?")) return;
+
+    startTransition(async () => {
+      try {
+        const res = await getRolloverStrengths(academicYearId);
+        if (res.success) {
+          setRows(res.data);
+          setIsEditing(true);
+          toast.success("Rollover calculated! Review the numbers and click Save Changes.");
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Failed to load rollover data");
+      }
+    });
+  };
+
   const handleCancel = () => {
     setRows(initialStrengths);
     setIsEditing(false);
@@ -101,6 +120,10 @@ export function CohortTable({
           <div className="flex items-center gap-2">
             {isEditing ? (
               <>
+                <Button onClick={handleRollover} variant="outline" size="sm" disabled={isPending} className="border-gray-200 text-blue-600">
+                  <RefreshCw className="mr-1 h-4 w-4" />
+                  Load from Previous Year
+                </Button>
                 <Button onClick={handleCancel} variant="outline" size="sm" disabled={isPending} className="border-gray-200">
                   <X className="mr-1 h-4 w-4" />
                   Cancel
@@ -120,10 +143,18 @@ export function CohortTable({
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setIsEditing(true)} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Edit2 className="mr-1 h-4 w-4" />
-                Edit Cohort
-              </Button>
+              <>
+                {rows.length === 0 && (
+                  <Button onClick={handleRollover} size="sm" variant="outline" disabled={isPending} className="border-gray-200 text-blue-600">
+                    <RefreshCw className="mr-1 h-4 w-4" />
+                    Load from Previous Year
+                  </Button>
+                )}
+                <Button onClick={() => setIsEditing(true)} size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Edit2 className="mr-1 h-4 w-4" />
+                  Edit Cohort
+                </Button>
+              </>
             )}
           </div>
         )}
