@@ -81,7 +81,9 @@ async function main() {
   const grades = await prisma.grade.findMany({ orderBy: { sortOrder: "asc" } });
 
   // Seat capacity
+const seatCaps: Record<string, number> = {'KG 1 (PRE-KG)': 70, 'KG 2 (JKG)': 70, 'KG 3 (SKG)': 70, 'Grade 1 - YAAZH': 35, 'Grade 1 (ACS)': 30, 'Grade 2 (YAAZH & VEENAI)': 70, 'Grade 2 (ACS)': 30, 'Grade 3': 70, 'Grade 3 (ACS)': 30, 'Grade 4': 35, 'Grade 4 (ACS)': 30, 'Grade 5 Yaazh': 35, 'Grade 5 (ACS)': 30, 'Grade 6': 70, 'Grade 7': 70, 'Grade 8': 70, 'Grade 9': 70, 'Grade 10': 70, 'Grade 11': 60, '12 Bio/Math': 19, '12 Math / CS': 18, '12 Arts': 3};
   for (const grade of grades) {
+    const targetCap = seatCaps[grade.name] || 40;
     await prisma.gradeSeatCapacity.upsert({
       where: {
         academicYearId_gradeId_campusId: {
@@ -90,12 +92,12 @@ async function main() {
           campusId: campus.id,
         },
       },
-      update: {},
+      update: { totalSeats: targetCap },
       create: {
         academicYearId: academicYear.id,
         gradeId: grade.id,
         campusId: campus.id,
-        totalSeats: 40,
+        totalSeats: targetCap,
       },
     });
   }
@@ -892,7 +894,7 @@ async function main() {
           academicYearId: c.academicYearId,
         },
       },
-      update: {},
+      update: c,
       create: c,
     });
   }
