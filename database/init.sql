@@ -895,25 +895,55 @@ BEGIN
 
     -- Grades
     INSERT INTO grades (id, name, "sortOrder", "isActive", "updatedAt") VALUES
-        (v_grade_prekg,    'KG 1 (PRE-KG)',            1, TRUE, CURRENT_TIMESTAMP),
-        (v_grade_lkg,      'KG 2 (JKG)',               2, TRUE, CURRENT_TIMESTAMP),
-        (v_grade_ukg,      'KG 3 (SKG)',               3, TRUE, CURRENT_TIMESTAMP),
-        (v_grade_g1_yaazh, 'Grade 1 - YAAZH',          4, TRUE, CURRENT_TIMESTAMP),
-        (v_grade_g1_acs,   'Grade 1 (ACS)',            5, TRUE, CURRENT_TIMESTAMP),
-        (v_grade_g2_yv,    'Grade 2 (YAAZH & VEENAI)', 6, TRUE, CURRENT_TIMESTAMP),
-        (v_grade_g2_acs,   'Grade 2 (ACS)',            7, TRUE, CURRENT_TIMESTAMP)
+        (v_grade_0, 'KG 1 (PRE-KG)', 1, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_1, 'KG 2 (JKG)', 2, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_2, 'KG 3 (SKG)', 3, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_3, 'Grade 1 - YAAZH', 4, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_4, 'Grade 1 (ACS)', 5, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_5, 'Grade 2 (YAAZH & VEENAI)', 6, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_6, 'Grade 2 (ACS)', 7, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_7, 'Grade 3', 8, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_8, 'Grade 3 (ACS)', 9, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_9, 'Grade 4', 10, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_10, 'Grade 4 (ACS)', 11, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_11, 'Grade 5 Yaazh', 12, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_12, 'Grade 5 (ACS)', 13, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_13, 'Grade 6', 14, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_14, 'Grade 7', 15, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_15, 'Grade 8', 16, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_16, 'Grade 9', 17, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_17, 'Grade 10', 18, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_18, 'Grade 11', 19, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_19, '12 Bio/Math', 20, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_20, '12 Math / CS', 21, TRUE, CURRENT_TIMESTAMP),
+        (v_grade_21, '12 Arts', 22, TRUE, CURRENT_TIMESTAMP)
     ON CONFLICT (id) DO NOTHING;
 
     -- Seat capacity: 40 per grade for the default campus + academic year
     INSERT INTO grade_seat_capacity (id, "academicYearId", "gradeId", "campusId", "totalSeats", "updatedAt")
     VALUES
-        (gen_random_uuid()::text, v_ay_id, v_grade_prekg,    v_campus_id, 40, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, v_ay_id, v_grade_lkg,      v_campus_id, 40, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, v_ay_id, v_grade_ukg,      v_campus_id, 40, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, v_ay_id, v_grade_g1_yaazh, v_campus_id, 40, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, v_ay_id, v_grade_g1_acs,   v_campus_id, 40, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, v_ay_id, v_grade_g2_yv,    v_campus_id, 40, CURRENT_TIMESTAMP),
-        (gen_random_uuid()::text, v_ay_id, v_grade_g2_acs,   v_campus_id, 40, CURRENT_TIMESTAMP)
+        (gen_random_uuid()::text, v_ay_id, v_grade_0, v_campus_id, 70, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_1, v_campus_id, 70, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_2, v_campus_id, 70, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_3, v_campus_id, 35, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_4, v_campus_id, 30, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_5, v_campus_id, 70, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_6, v_campus_id, 30, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_7, v_campus_id, 70, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_8, v_campus_id, 30, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_9, v_campus_id, 35, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_10, v_campus_id, 30, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_11, v_campus_id, 35, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_12, v_campus_id, 30, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_13, v_campus_id, 70, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_14, v_campus_id, 70, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_15, v_campus_id, 70, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_16, v_campus_id, 70, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_17, v_campus_id, 70, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_18, v_campus_id, 60, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_19, v_campus_id, 19, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_20, v_campus_id, 18, CURRENT_TIMESTAMP),
+        (gen_random_uuid()::text, v_ay_id, v_grade_21, v_campus_id, 3, CURRENT_TIMESTAMP)
     ON CONFLICT ("academicYearId", "gradeId", "campusId") DO NOTHING;
 
     -- Roles
@@ -1816,4 +1846,26 @@ DO $$ BEGIN
         ('f9d77526-e5ea-54ac-9bab-43b1e16ac383', '3f06de48-b419-50a5-925b-5a41600ba7a3', '9 காட்டூர்-2', '9', '18.4')
     ON CONFLICT ("id") DO NOTHING;
 END $$;
+    v_grade_0 text := '289ea7b4-c218-4c62-bda5-fdc1c3955252';
+    v_grade_1 text := 'c80184f8-9027-4156-875d-877c1b514fb9';
+    v_grade_2 text := '2aea7749-be03-488b-9f77-f64bd557cb24';
+    v_grade_3 text := 'a9e640cd-ef78-40c2-8b20-3dc5c31d7a8e';
+    v_grade_4 text := 'ea837179-56cd-4273-a697-ede4f8532628';
+    v_grade_5 text := '07b6e82f-8f89-443b-a78a-7b6c4f5d7e80';
+    v_grade_6 text := 'd26ef0de-1c18-4e8f-9a20-f710b9c3e568';
+    v_grade_7 text := 'cc04462b-ac5b-4498-a15c-d1767f1fd741';
+    v_grade_8 text := '578ff29d-5ecb-462d-af4e-975bfb540178';
+    v_grade_9 text := 'a2676d67-70ec-418e-8da7-02ee839540f1';
+    v_grade_10 text := '0038ed3c-06d9-416d-ae1b-ee7b6c17dc3c';
+    v_grade_11 text := '2417b96c-a304-4e64-a666-39565aaf678f';
+    v_grade_12 text := '6dee8e0b-d3c7-4a0a-b562-0149055a495c';
+    v_grade_13 text := '556c0918-fe08-4e36-9946-8ec50dfae2d1';
+    v_grade_14 text := '9e387ec4-9242-4699-9ac8-278385f20e24';
+    v_grade_15 text := '95c4ac58-3ebb-4689-ad40-6dfd355b4094';
+    v_grade_16 text := '745d7110-2638-4b18-a775-7cf50918f4bc';
+    v_grade_17 text := 'c8719d84-3e4a-4b28-b1b1-7461bbd69612';
+    v_grade_18 text := 'ca63e5da-eac2-42b6-8bcb-66f1cd1b7f11';
+    v_grade_19 text := 'af31f1fd-dd70-4c4c-afc9-2444cd21e44e';
+    v_grade_20 text := '6411f64b-f175-4912-bbb7-bd02d33914e8';
+    v_grade_21 text := '7285f4b5-b2b3-4f37-a833-e7c2a560d9ad';
 

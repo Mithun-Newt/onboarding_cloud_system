@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { CreateGradeForm } from "./create-grade-form";
 import { GradeActions } from "./grade-actions";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +12,6 @@ export default async function GradesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Grades / Classes</h2>
-        <CreateGradeForm />
       </div>
 
       <div className="rounded-lg border bg-white">

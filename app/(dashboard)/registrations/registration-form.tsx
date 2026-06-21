@@ -85,6 +85,16 @@ export function RegistrationForm({
     if (age === 5) return "KG 3 (SKG)";
     if (age === 6) return "Grade 1 - YAAZH";
     if (age === 7) return "Grade 2 (YAAZH & VEENAI)";
+    if (age === 8) return "Grade 3";
+    if (age === 9) return "Grade 4";
+    if (age === 10) return "Grade 5 Yaazh";
+    if (age === 11) return "Grade 6";
+    if (age === 12) return "Grade 7";
+    if (age === 13) return "Grade 8";
+    if (age === 14) return "Grade 9";
+    if (age === 15) return "Grade 10";
+    if (age === 16) return "Grade 11";
+    if (age >= 17) return "12 Bio/Math";
     return null;
   };
 
@@ -116,8 +126,8 @@ export function RegistrationForm({
     const standardGrade = getGradeForAge(standardAge);
     const relaxationGrade = getGradeForAge(relaxationAge);
 
-    const standardEligible = standardAge >= 3 && standardAge <= 7;
-    const relaxationEligible = relaxationAge >= 3 && relaxationAge <= 7;
+    const standardEligible = standardAge >= 3;
+    const relaxationEligible = relaxationAge >= 3;
 
     if (standardEligible) {
       if (isWithinWindow && relaxationGrade && standardGrade !== relaxationGrade) {
@@ -169,33 +179,37 @@ export function RegistrationForm({
       age--;
     }
 
-    if (age < 3 || age >= 8) {
-      setAgeError(`Student age of ${age} years is not eligible for admission. Age must be between 3 and 8 years as of ${targetMonthName}, ${startYear}.`);
+    if (age < 3) {
+      setAgeError(`Student age of ${age} years is not eligible for admission. Age must be at least 3 years as of ${targetMonthName}, ${startYear}.`);
       setValue("gradeId", "");
     } else {
       setAgeError(null);
-      let matchingGradeName = "";
-      if (age === 3) matchingGradeName = "KG 1 (PRE-KG)";
-      else if (age === 4) matchingGradeName = "KG 2 (JKG)";
-      else if (age === 5) matchingGradeName = "KG 3 (SKG)";
-      else if (age === 6) matchingGradeName = "Grade 1 - YAAZH";
-      else if (age === 7) matchingGradeName = "Grade 2 (YAAZH & VEENAI)";
 
       const currentGradeId = getValues("gradeId");
       const currentGrade = grades.find((g) => g.id === currentGradeId);
       let isCurrentEligible = false;
       if (currentGrade) {
         if (age === 3 && currentGrade.name === "KG 1 (PRE-KG)") isCurrentEligible = true;
-        if (age === 4 && currentGrade.name === "KG 2 (JKG)") isCurrentEligible = true;
-        if (age === 5 && currentGrade.name === "KG 3 (SKG)") isCurrentEligible = true;
-        if (age === 6 && (currentGrade.name === "Grade 1 - YAAZH" || currentGrade.name === "Grade 1 (ACS)")) isCurrentEligible = true;
-        if (age === 7 && (currentGrade.name === "Grade 2 (YAAZH & VEENAI)" || currentGrade.name === "Grade 2 (ACS)")) isCurrentEligible = true;
+        else if (age === 4 && currentGrade.name === "KG 2 (JKG)") isCurrentEligible = true;
+        else if (age >= 5) {
+          if (currentGrade.name !== "KG 1 (PRE-KG)" && currentGrade.name !== "KG 2 (JKG)") {
+            isCurrentEligible = true;
+          }
+        }
       }
 
       if (!isCurrentEligible) {
-        const matchingGrade = grades.find((g) => g.name === matchingGradeName);
-        if (matchingGrade) {
-          setValue("gradeId", matchingGrade.id);
+        let matchingGradeName = "";
+        if (age === 3) matchingGradeName = "KG 1 (PRE-KG)";
+        else if (age === 4) matchingGradeName = "KG 2 (JKG)";
+        
+        if (matchingGradeName) {
+          const matchingGrade = grades.find((g) => g.name === matchingGradeName);
+          if (matchingGrade) {
+            setValue("gradeId", matchingGrade.id);
+          }
+        } else {
+          setValue("gradeId", "");
         }
       }
     }
@@ -227,9 +241,11 @@ export function RegistrationForm({
     let eligibleGradeNames: string[] = [];
     if (age === 3) eligibleGradeNames = ["KG 1 (PRE-KG)"];
     else if (age === 4) eligibleGradeNames = ["KG 2 (JKG)"];
-    else if (age === 5) eligibleGradeNames = ["KG 3 (SKG)"];
-    else if (age === 6) eligibleGradeNames = ["Grade 1 - YAAZH", "Grade 1 (ACS)"];
-    else if (age === 7) eligibleGradeNames = ["Grade 2 (YAAZH & VEENAI)", "Grade 2 (ACS)"];
+    else if (age >= 5) {
+      eligibleGradeNames = grades
+        .map((g) => g.name)
+        .filter((n) => n !== "KG 1 (PRE-KG)" && n !== "KG 2 (JKG)");
+    }
 
     if (eligibleGradeNames.length === 0) return [];
     return grades.filter((g) => eligibleGradeNames.includes(g.name));
