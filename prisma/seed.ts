@@ -53,6 +53,21 @@ async function main() {
     { name: "Grade 1 (ACS)", sortOrder: 5 },
     { name: "Grade 2 (YAAZH & VEENAI)", sortOrder: 6 },
     { name: "Grade 2 (ACS)", sortOrder: 7 },
+    { name: "Grade 3", sortOrder: 8 },
+    { name: "Grade 3 (ACS)", sortOrder: 9 },
+    { name: "Grade 4", sortOrder: 10 },
+    { name: "Grade 4 (ACS)", sortOrder: 11 },
+    { name: "Grade 5 Yaazh", sortOrder: 12 },
+    { name: "Grade 5 (ACS)", sortOrder: 13 },
+    { name: "Grade 6", sortOrder: 14 },
+    { name: "Grade 7", sortOrder: 15 },
+    { name: "Grade 8", sortOrder: 16 },
+    { name: "Grade 9", sortOrder: 17 },
+    { name: "Grade 10", sortOrder: 18 },
+    { name: "Grade 11", sortOrder: 19 },
+    { name: "12 Bio/Math", sortOrder: 20 },
+    { name: "12 Math / CS", sortOrder: 21 },
+    { name: "12 Arts", sortOrder: 22 },
   ];
 
   for (const g of gradeData) {
@@ -845,13 +860,28 @@ async function main() {
 
   // Cohort Strengths seeding
   const cohortStrengths = [
-    { className: "KG 1 (PRE-KG)", promotedStrength: 0, tc: 0, newAdmission: 47, target: 60, sortOrder: 1, academicYearId: academicYear.id },
-    { className: "KG 2 (JKG)", promotedStrength: 34, tc: 1, newAdmission: 36, target: 70, sortOrder: 2, academicYearId: academicYear.id },
-    { className: "KG 3 (SKG)", promotedStrength: 50, tc: 6, newAdmission: 10, target: 70, sortOrder: 3, academicYearId: academicYear.id },
-    { className: "Grade 1 - YAAZH", promotedStrength: 45, tc: 0, newAdmission: 2, target: 35, sortOrder: 4, academicYearId: academicYear.id },
+    { className: "KG 1 (PRE-KG)", promotedStrength: 0, tc: 0, newAdmission: 50, target: 70, sortOrder: 1, academicYearId: academicYear.id },
+    { className: "KG 2 (JKG)", promotedStrength: 34, tc: 1, newAdmission: 35, target: 70, sortOrder: 2, academicYearId: academicYear.id },
+    { className: "KG 3 (SKG)", promotedStrength: 50, tc: 7, newAdmission: 10, target: 70, sortOrder: 3, academicYearId: academicYear.id },
+    { className: "Grade 1 - YAAZH", promotedStrength: 45, tc: 1, newAdmission: 2, target: 35, sortOrder: 4, academicYearId: academicYear.id },
     { className: "Grade 1 (ACS)", promotedStrength: 29, tc: 0, newAdmission: 1, target: 30, sortOrder: 5, academicYearId: academicYear.id },
-    { className: "Grade 2 (YAAZH & VEENAI)", promotedStrength: 49, tc: 0, newAdmission: 11, target: 70, sortOrder: 6, academicYearId: academicYear.id },
+    { className: "Grade 2 (YAAZH & VEENAI)", promotedStrength: 49, tc: 0, newAdmission: 12, target: 70, sortOrder: 6, academicYearId: academicYear.id },
     { className: "Grade 2 (ACS)", promotedStrength: 28, tc: 1, newAdmission: 0, target: 30, sortOrder: 7, academicYearId: academicYear.id },
+    { className: "Grade 3", promotedStrength: 62, tc: 0, newAdmission: 9, target: 70, sortOrder: 8, academicYearId: academicYear.id },
+    { className: "Grade 3 (ACS)", promotedStrength: 25, tc: 0, newAdmission: 0, target: 30, sortOrder: 9, academicYearId: academicYear.id },
+    { className: "Grade 4", promotedStrength: 40, tc: 6, newAdmission: 1, target: 35, sortOrder: 10, academicYearId: academicYear.id },
+    { className: "Grade 4 (ACS)", promotedStrength: 27, tc: 1, newAdmission: 0, target: 30, sortOrder: 11, academicYearId: academicYear.id },
+    { className: "Grade 5 Yaazh", promotedStrength: 39, tc: 5, newAdmission: 3, target: 35, sortOrder: 12, academicYearId: academicYear.id },
+    { className: "Grade 5 (ACS)", promotedStrength: 26, tc: 2, newAdmission: 0, target: 30, sortOrder: 13, academicYearId: academicYear.id },
+    { className: "Grade 6", promotedStrength: 71, tc: 18, newAdmission: 12, target: 70, sortOrder: 14, academicYearId: academicYear.id },
+    { className: "Grade 7", promotedStrength: 64, tc: 6, newAdmission: 9, target: 70, sortOrder: 15, academicYearId: academicYear.id },
+    { className: "Grade 8", promotedStrength: 64, tc: 12, newAdmission: 7, target: 70, sortOrder: 16, academicYearId: academicYear.id },
+    { className: "Grade 9", promotedStrength: 65, tc: 8, newAdmission: 2, target: 70, sortOrder: 17, academicYearId: academicYear.id },
+    { className: "Grade 10", promotedStrength: 67, tc: 0, newAdmission: 1, target: 70, sortOrder: 18, academicYearId: academicYear.id },
+    { className: "Grade 11", promotedStrength: 53, tc: 22, newAdmission: 9, target: 60, sortOrder: 19, academicYearId: academicYear.id },
+    { className: "12 Bio/Math", promotedStrength: 19, tc: 1, newAdmission: 0, target: 19, sortOrder: 20, academicYearId: academicYear.id },
+    { className: "12 Math / CS", promotedStrength: 18, tc: 1, newAdmission: 0, target: 18, sortOrder: 21, academicYearId: academicYear.id },
+    { className: "12 Arts", promotedStrength: 3, tc: 1, newAdmission: 0, target: 3, sortOrder: 22, academicYearId: academicYear.id },
   ];
 
   for (const c of cohortStrengths) {
