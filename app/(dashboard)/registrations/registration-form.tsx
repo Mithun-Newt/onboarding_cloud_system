@@ -262,13 +262,15 @@ export function RegistrationForm({
     setLoading(true);
     try {
       if (registrationId) {
-        await updateRegistration(registrationId, data);
+        const res = await updateRegistration(registrationId, data);
+        if (!res.success) throw new Error(res.error);
         toast.success("Registration updated");
         router.push(`/registrations/${registrationId}`);
       } else {
-        const reg = await createRegistration(data);
-        toast.success(`Registration created: ${reg.registrationNo}`);
-        router.push(`/registrations/${reg.id}`);
+        const res = await createRegistration(data);
+        if (!res.success) throw new Error(res.error);
+        toast.success(`Registration created: ${res.data.registrationNo}`);
+        router.push(`/registrations/${res.data.id}`);
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to save registration");

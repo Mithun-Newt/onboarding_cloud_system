@@ -66,7 +66,8 @@ export function CohortTable({
 
     startTransition(async () => {
       try {
-        await saveCohortStrengths(academicYearId, rows);
+        const res = await saveCohortStrengths(academicYearId, rows);
+        if (!res.success) throw new Error(res.error);
         toast.success("Cohort strengths updated successfully");
         setIsEditing(false);
         router.refresh();

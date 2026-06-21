@@ -85,11 +85,11 @@ return strengths;
 
     revalidatePath("/dashboard");
     return { success: true };
-  } catch (err: any) {
-    console.error("Error saving cohort strengths:", err);
-    throw new Error(err.message || "Failed to save cohort strengths");
+    } catch (err: any) {
+      console.error("Error saving cohort strengths:", err);
+      return { success: false, error: err.message || "Failed to save cohort strengths" };
+    }
   }
-}
 
 export async function addCohortRow(academicYearId: string, className: string) {
   try {
@@ -241,6 +241,6 @@ export async function getRolloverStrengths(academicYearId: string) {
     return { success: true, data: resultRows };
   } catch (err: any) {
     console.error("Error calculating rollover strengths:", err);
-    throw new Error(err.message || "Failed to calculate rollover strengths");
+    return { success: false, error: err.message || "Failed to calculate rollover strengths" };
   }
 }

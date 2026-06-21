@@ -112,10 +112,10 @@ export async function createRegistration(formData: unknown) {
     });
 
     revalidatePath("/registrations");
-    return registration;
+    return { success: true, data: registration };
   } catch (error) {
     console.error("CREATE_REGISTRATION_ERROR:", error);
-    throw error instanceof Error ? error : new Error("Failed to create registration");
+    return { success: false, error: error instanceof Error ? error.message : "Failed to create registration" };
   }
 }
 
@@ -255,10 +255,10 @@ export async function updateRegistration(id: string, formData: unknown) {
       }
     }
 
-    return registration;
+    return { success: true, data: registration };
   } catch (error) {
     console.error("UPDATE_REGISTRATION_ERROR:", error);
-    throw error instanceof Error ? error : new Error("Failed to update registration");
+    return { success: false, error: error instanceof Error ? error.message : "Failed to update registration" };
   }
 }
 
