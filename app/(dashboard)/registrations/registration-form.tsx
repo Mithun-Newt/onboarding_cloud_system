@@ -268,7 +268,7 @@ export function RegistrationForm({
         router.push(`/registrations/${registrationId}`);
       } else {
         const res = await createRegistration(data);
-        if (!res.success) throw new Error(res.error);
+        if (!res.success || !res.data) throw new Error(res.error || "Failed to create registration");
         toast.success(`Registration created: ${res.data.registrationNo}`);
         router.push(`/registrations/${res.data.id}`);
       }

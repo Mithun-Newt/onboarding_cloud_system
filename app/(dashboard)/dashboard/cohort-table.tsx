@@ -85,10 +85,12 @@ export function CohortTable({
     startTransition(async () => {
       try {
         const res = await getRolloverStrengths(academicYearId);
-        if (res.success) {
+        if (res.success && res.data) {
           setRows(res.data);
           setIsEditing(true);
           toast.success("Rollover calculated! Review the numbers and click Save Changes.");
+        } else if (!res.success) {
+          toast.error(res.error || "Failed to load rollover data");
         }
       } catch (err: any) {
         toast.error(err.message || "Failed to load rollover data");
