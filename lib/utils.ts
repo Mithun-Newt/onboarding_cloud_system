@@ -131,6 +131,16 @@ export function getEligibleGradeName(dob: Date | string, startYear: number, ageR
   if (age === 5) return "KG 3 (SKG)";
   if (age === 6) return "Grade 1 - YAAZH";
   if (age === 7) return "Grade 2 (YAAZH & VEENAI)";
+  if (age === 8) return "Grade 3";
+  if (age === 9) return "Grade 4";
+  if (age === 10) return "Grade 5 Yaazh";
+  if (age === 11) return "Grade 6";
+  if (age === 12) return "Grade 7";
+  if (age === 13) return "Grade 8";
+  if (age === 14) return "Grade 9";
+  if (age === 15) return "Grade 10";
+  if (age === 16) return "Grade 11";
+  if (age >= 17) return "12 Bio/Math";
   return null;
 }
 
