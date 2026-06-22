@@ -191,8 +191,9 @@ export function RegistrationForm({
       if (currentGrade) {
         if (age === 3 && currentGrade.name === "KG 1 (PRE-KG)") isCurrentEligible = true;
         else if (age === 4 && currentGrade.name === "KG 2 (JKG)") isCurrentEligible = true;
-        else if (age >= 5) {
-          if (currentGrade.name !== "KG 1 (PRE-KG)" && currentGrade.name !== "KG 2 (JKG)") {
+        else if (age === 5 && currentGrade.name === "KG 3 (SKG)") isCurrentEligible = true;
+        else if (age >= 6) {
+          if (currentGrade.name !== "KG 1 (PRE-KG)" && currentGrade.name !== "KG 2 (JKG)" && currentGrade.name !== "KG 3 (SKG)") {
             isCurrentEligible = true;
           }
         }
@@ -202,6 +203,7 @@ export function RegistrationForm({
         let matchingGradeName = "";
         if (age === 3) matchingGradeName = "KG 1 (PRE-KG)";
         else if (age === 4) matchingGradeName = "KG 2 (JKG)";
+        else if (age === 5) matchingGradeName = "KG 3 (SKG)";
         
         if (matchingGradeName) {
           const matchingGrade = grades.find((g) => g.name === matchingGradeName);
@@ -241,10 +243,11 @@ export function RegistrationForm({
     let eligibleGradeNames: string[] = [];
     if (age === 3) eligibleGradeNames = ["KG 1 (PRE-KG)"];
     else if (age === 4) eligibleGradeNames = ["KG 2 (JKG)"];
-    else if (age >= 5) {
+    else if (age === 5) eligibleGradeNames = ["KG 3 (SKG)"];
+    else if (age >= 6) {
       eligibleGradeNames = grades
         .map((g) => g.name)
-        .filter((n) => n !== "KG 1 (PRE-KG)" && n !== "KG 2 (JKG)");
+        .filter((n) => n !== "KG 1 (PRE-KG)" && n !== "KG 2 (JKG)" && n !== "KG 3 (SKG)");
     }
 
     if (eligibleGradeNames.length === 0) return [];
