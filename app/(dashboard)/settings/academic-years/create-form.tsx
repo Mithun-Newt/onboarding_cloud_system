@@ -21,7 +21,8 @@ export function CreateAcademicYearForm() {
     const endYear = startYear + 1;
     const label = `${startYear}-${String(endYear).slice(-2)}`;
     try {
-      await createAcademicYear({ label, startYear, endYear });
+      const res = await createAcademicYear({ label, startYear, endYear });
+      if (!res.success) throw new Error(res.error);
       toast.success(`Academic year ${label} created`);
       setOpen(false);
     } catch (err: any) {

@@ -12,11 +12,19 @@ const ADMIN_ROLES: RoleName[] = [RoleName.SYSTEM_ADMIN, RoleName.TIC];
 // ── Academic Years ──────────────────────────────────────────────────────────
 
 export async function createAcademicYear(data: { label: string; startYear: number; endYear: number }) {
-  const session = await requireRole(ADMIN_ROLES);
-  const ay = await prisma.academicYear.create({ data });
-  await createAuditLog({ actorUserId: session.user.id, action: "CREATE", entityType: "AcademicYear", entityId: ay.id, newValue: data });
-  revalidatePath("/settings/academic-years");
-  return ay;
+  try {
+    const session = await requireRole(ADMIN_ROLES);
+    const ay = await prisma.academicYear.create({ data });
+    await createAuditLog({ actorUserId: session.user.id, action: "CREATE", entityType: "AcademicYear", entityId: ay.id, newValue: data });
+    revalidatePath("/settings/academic-years");
+    return { success: true, data: ay };
+  } catch (error: any) {
+    console.error("CREATE_ACADEMIC_YEAR_ERROR:", error);
+    if (error.code === 'P2002') {
+      return { success: false, error: "An academic year with this start year already exists." };
+    }
+    return { success: false, error: "Failed to create academic year." };
+  }
 }
 
 export async function setCurrentAcademicYear(id: string) {
