@@ -46,19 +46,21 @@ export async function createRegistration(formData: unknown) {
     }
 
       let isEligible = false;
-      if (selectedGrade.name.includes("KG 1") || selectedGrade.name.includes("PRE-KG")) {
-        isEligible = eligibleGradeName === "KG 1 (PRE-KG)";
-      } else if (selectedGrade.name.includes("KG 2") || selectedGrade.name.includes("JKG")) {
-        isEligible = eligibleGradeName === "KG 2 (JKG)";
-      } else if (selectedGrade.name.includes("KG 3") || selectedGrade.name.includes("SKG")) {
-        isEligible = eligibleGradeName === "KG 3 (SKG)";
+      if (eligibleGradeName === "KG 1 (PRE-KG)") {
+        isEligible = selectedGrade.name.includes("KG 1") || selectedGrade.name.includes("PRE-KG");
+      } else if (eligibleGradeName === "KG 2 (JKG)") {
+        isEligible = selectedGrade.name.includes("KG 2") || selectedGrade.name.includes("JKG");
       } else {
-        // Grade 1 to 12: no age restriction criteria
-        isEligible = true;
+        // For ages 5 and older: can choose any grade from SKG to Grade 12
+        if (selectedGrade.name.includes("KG 1") || selectedGrade.name.includes("PRE-KG") || selectedGrade.name.includes("KG 2") || selectedGrade.name.includes("JKG")) {
+          isEligible = false;
+        } else {
+          isEligible = true;
+        }
       }
 
       if (!isEligible) {
-        throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age. Only grades 1 to 12 are unrestricted by age.`);
+        throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
       }
 
     const normalizedStudentName = data.givenName.trim();
@@ -158,19 +160,21 @@ export async function updateRegistration(id: string, formData: unknown) {
     }
 
       let isEligible = false;
-      if (selectedGrade.name.includes("KG 1") || selectedGrade.name.includes("PRE-KG")) {
-        isEligible = eligibleGradeName === "KG 1 (PRE-KG)";
-      } else if (selectedGrade.name.includes("KG 2") || selectedGrade.name.includes("JKG")) {
-        isEligible = eligibleGradeName === "KG 2 (JKG)";
-      } else if (selectedGrade.name.includes("KG 3") || selectedGrade.name.includes("SKG")) {
-        isEligible = eligibleGradeName === "KG 3 (SKG)";
+      if (eligibleGradeName === "KG 1 (PRE-KG)") {
+        isEligible = selectedGrade.name.includes("KG 1") || selectedGrade.name.includes("PRE-KG");
+      } else if (eligibleGradeName === "KG 2 (JKG)") {
+        isEligible = selectedGrade.name.includes("KG 2") || selectedGrade.name.includes("JKG");
       } else {
-        // Grade 1 to 12: no age restriction criteria
-        isEligible = true;
+        // For ages 5 and older: can choose any grade from SKG to Grade 12
+        if (selectedGrade.name.includes("KG 1") || selectedGrade.name.includes("PRE-KG") || selectedGrade.name.includes("KG 2") || selectedGrade.name.includes("JKG")) {
+          isEligible = false;
+        } else {
+          isEligible = true;
+        }
       }
 
       if (!isEligible) {
-        throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age. Only grades 1 to 12 are unrestricted by age.`);
+        throw new Error(`The student's age is eligible only for "${eligibleGradeName}". Selected grade "${selectedGrade.name}" is invalid for their age.`);
       }
 
     const normalizedStudentName = data.givenName.trim();
