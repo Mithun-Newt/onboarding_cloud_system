@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { RoleName } from "@prisma/client";
+import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt", maxAge: 8 * 60 * 60 },
@@ -14,8 +15,15 @@ export const authOptions: NextAuthOptions = {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.username || !credentials?.password) return null;
+
+        const ip = req.headers?.["x-forwarded-for"] || "unknown";
+        const rateLimitKey = `${ip}-${credentials.username}`;
+
+        if (!checkRateLimit(rateLimitKey)) {
+          throw new Error("Too many login attempts. Please try again in 5 minutes.");
+        }
 
         const user = await prisma.staffUser.findUnique({
           where: { username: credentials.username },
@@ -39,6 +47,8 @@ export const authOptions: NextAuthOptions = {
           where: { id: user.id },
           data: { lastLoginAt: new Date() },
         });
+
+        resetRateLimit(rateLimitKey);
 
         await prisma.auditLog.create({
           data: {
