@@ -163,7 +163,7 @@ export async function getRolloverStrengths(academicYearId: string) {
     // Also need the actual confirmed admissions from the previous year
     const previousAdmissions = await prisma.admissionApplication.groupBy({
       by: ["gradeId"],
-      where: { academicYearId: previousYear.id, status: "CONFIRMED" },
+      where: { academicYearId: previousYear.id, status: { in: ["CONFIRMED", "TC_ISSUED"] } },
       _count: { id: true },
     });
 

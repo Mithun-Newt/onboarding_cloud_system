@@ -404,88 +404,15 @@ export async function deleteRegistration(id: string) {
         student: true,
       },
     });
-    if (!reg) throw new Error("Registration not found");
-    if (reg.status === RegistrationStatus.ADMITTED) {
-      throw new Error("Cannot delete an admitted registration");
-    }
-
-    // Delete admissions and related data
-    for (const admission of reg.admissions) {
-      await prisma.payment.deleteMany({
-        where: { admissionId: admission.id },
-      });
-
-      await prisma.admissionStatusHistory.deleteMany({
-        where: { admissionId: admission.id },
-      });
-
-      await prisma.previousSchoolDetail.deleteMany({
-        where: { admissionId: admission.id },
-      });
-
-      await prisma.transportRequest.deleteMany({
-        where: { admissionId: admission.id },
-      });
-
-      await prisma.admissionApplication.delete({
-        where: { id: admission.id },
-      });
-    }
-
-    // Delete student and related data
-    if (reg.student) {
-      await prisma.studentDocument.deleteMany({
-        where: { studentId: reg.student.id },
-      });
-
-      await prisma.studentMedicalProfile.deleteMany({
-        where: { studentId: reg.student.id },
-      });
-
-      await prisma.studentVaccination.deleteMany({
-        where: { studentId: reg.student.id },
-      });
-
-      await prisma.siblingRelative.deleteMany({
-        where: { studentId: reg.student.id },
-      });
-
-      if (reg.student.familyId) {
-        await prisma.guardian.deleteMany({
-          where: { familyId: reg.student.familyId },
-        });
-
-        const familyWithOtherStudents = await prisma.family.findUnique({
-          where: { id: reg.student.familyId },
-          include: { students: true },
-        });
-
-        if (familyWithOtherStudents && familyWithOtherStudents.students.length === 1) {
-          await prisma.family.delete({
-            where: { id: reg.student.familyId },
-          });
-        }
-      }
-    }
-
-    // Delete the registration itself
-    await prisma.registration.delete({
-      where: { id },
-    });
-
-    // Delete the student record itself after deleting registration to clear foreign keys
-    if (reg.student) {
-      await prisma.student.delete({
-        where: { id: reg.student.id },
-      });
-    }
-
+    if (!reg) throw new Error("Registration not found");    const { hardDeleteFullRecord } = await import("@/features/admissions/delete-actions");
+    await hardDeleteFullRecord({ registrationId: id });
+    
     await createAuditLog({
       actorUserId: session.user.id,
       action: "DELETE",
       entityType: "Registration",
       entityId: id,
-      oldValue: { registrationNo: reg.registrationNo, studentName: reg.studentName },
+      oldValue: { registrationId: id },
     });
 
     revalidatePath("/registrations");

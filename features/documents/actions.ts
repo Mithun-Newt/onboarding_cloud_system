@@ -8,6 +8,7 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { DocumentStatus, RoleName } from "@prisma/client";
 import { getRestrictionForDocumentType } from "@/lib/document-restrictions";
+import { v2 as cloudinary } from "cloudinary";
 
 const MAX_SIZE_MB = parseInt(process.env.MAX_FILE_SIZE_MB ?? "10");
 
@@ -38,15 +39,37 @@ export async function uploadDocument(formData: FormData) {
     throw new Error(`Invalid file type. ${restriction.description}`);
   }
 
-  const uploadDir = path.join(process.cwd(), "storage", "uploads", studentId);
-  await mkdir(uploadDir, { recursive: true });
-
-  const safeName = `${dt.id}-${Date.now()}.${ext}`;
-  const filePath = path.join(uploadDir, safeName);
+  const safeName = `${dt.id}-${Date.now()}`;
   const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(filePath, buffer);
 
-  const relativePath = path.join("storage", "uploads", studentId, safeName);
+  let relativePath = "";
+
+  if (process.env.CLOUDINARY_URL) {
+    // Upload to Cloudinary
+    try {
+      const uploadResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: `students/${studentId}`, public_id: safeName, resource_type: "auto" },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+        uploadStream.end(buffer);
+      });
+      relativePath = (uploadResult as any).secure_url;
+    } catch (err) {
+      console.error("Cloudinary upload failed:", err);
+      throw new Error("Failed to upload document to cloud storage.");
+    }
+  } else {
+    // Local fallback
+    const uploadDir = path.join(process.cwd(), "storage", "uploads", studentId);
+    await mkdir(uploadDir, { recursive: true });
+    const filePath = path.join(uploadDir, `${safeName}.${ext}`);
+    await writeFile(filePath, buffer);
+    relativePath = path.join("storage", "uploads", studentId, `${safeName}.${ext}`);
+  }
 
   const existing = await prisma.studentDocument.findFirst({
     where: { studentId, documentTypeId: dt.id },

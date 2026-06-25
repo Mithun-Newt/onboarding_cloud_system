@@ -30,6 +30,7 @@ enum AdmissionStatus {
   DRAFT
   CONFIRMED
   CANCELLED
+  TC_ISSUED
 }
 
 enum DocumentStatus {

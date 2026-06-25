@@ -32,7 +32,7 @@ export async function getDashboardStats(academicYearId?: string) {
       where: { ...whereYear, registrationDate: { gte: startToday, lte: endToday } },
     }),
     prisma.admissionApplication.count({
-      where: { ...whereYear, status: "CONFIRMED", confirmedAt: { gte: startToday, lte: endToday } },
+      where: { ...whereYear, status: { in: ["CONFIRMED", "TC_ISSUED"] }, confirmedAt: { gte: startToday, lte: endToday } },
     }),
     prisma.studentDocument.count({
       where: {
@@ -50,7 +50,7 @@ export async function getDashboardStats(academicYearId?: string) {
     }),
     prisma.admissionApplication.groupBy({
       by: ["gradeId"],
-      where: { ...whereYear, status: "CONFIRMED" },
+      where: { ...whereYear, status: { in: ["CONFIRMED", "TC_ISSUED"] } },
       _count: { id: true },
     }),
     prisma.gradeSeatCapacity.findMany({

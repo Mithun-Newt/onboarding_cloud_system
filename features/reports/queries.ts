@@ -33,7 +33,7 @@ export async function registrationSummaryReport(filter: ReportFilter) {
 
 export async function admissionSummaryReport(filter: ReportFilter) {
   try {
-    const where: any = { status: "CONFIRMED" };
+    const where: any = { status: { in: ["CONFIRMED", "TC_ISSUED"] } };
     if (filter.academicYearId) where.academicYearId = filter.academicYearId;
     if (filter.gradeId) where.gradeId = filter.gradeId;
     if (filter.campusId) where.campusId = filter.campusId;
@@ -155,7 +155,7 @@ export async function seatAvailabilityReport(filter: ReportFilter) {
     const confirmed = await prisma.admissionApplication.groupBy({
       by: ["gradeId", "campusId", "academicYearId"],
       where: {
-        status: "CONFIRMED",
+        status: { in: ["CONFIRMED", "TC_ISSUED"] },
         ...(filter.academicYearId ? { academicYearId: filter.academicYearId } : {}),
       },
       _count: { id: true },
@@ -300,7 +300,7 @@ export async function meetingSummaryReport(filter: ReportFilter) {
   try {
     const admissions = await prisma.admissionApplication.findMany({
       where: {
-        status: "CONFIRMED",
+        status: { in: ["CONFIRMED", "TC_ISSUED"] },
         ...(filter.academicYearId ? { academicYearId: filter.academicYearId } : {}),
       },
       include: {

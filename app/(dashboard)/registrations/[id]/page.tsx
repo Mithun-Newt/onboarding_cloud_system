@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pencil, FileText, ArrowRight, ArrowLeft } from "lucide-react";
 import { CancelRegistrationButton } from "./cancel-button";
 import { StartAdmissionButton } from "./start-admission-button";
-import { DeleteRegistrationButton } from "./delete-button";
+import { HardDeleteButton } from "@/components/ui/hard-delete-button";
 import { getSession } from "@/lib/auth";
 import { getRemainingVacancyForGrade } from "@/features/admissions/actions";
 
@@ -115,8 +115,8 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
               <Link href={`/registrations/${reg.id}/edit`}><Pencil className="mr-1 h-4 w-4" />Edit</Link>
             </Button>
           )}
-          {(reg.status === "REGISTERED" || reg.status === "ADMISSION_STARTED") && isWriteAllowed && (
-            <DeleteRegistrationButton registrationId={reg.id} />
+          {isWriteAllowed && (
+            <HardDeleteButton registrationId={reg.id} redirectUrl="/registrations" />
           )}
           {reg.status === "REGISTERED" && isWriteAllowed && (
             <>

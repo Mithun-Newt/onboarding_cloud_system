@@ -16,6 +16,8 @@ import { PaymentsTab } from "./tabs/payments-tab";
 import { TransportTab } from "./tabs/transport-tab";
 import { ConfirmAdmissionButton } from "./confirm-button";
 import { CancelAdmissionButton } from "./cancel-button";
+import { IssueTcButton } from "./tc-button";
+import { HardDeleteButton } from "@/components/ui/hard-delete-button";
 import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +26,7 @@ const STATUS_BADGES: Record<string, { label: string; variant: any }> = {
   DRAFT: { label: "Draft", variant: "warning" },
   CONFIRMED: { label: "Confirmed", variant: "success" },
   CANCELLED: { label: "Cancelled", variant: "destructive" },
+  TC_ISSUED: { label: "TC Issued", variant: "secondary" },
 };
 
 export default async function AdmissionDetailPage({ params }: { params: { id: string } }) {
@@ -131,9 +134,15 @@ export default async function AdmissionDetailPage({ params }: { params: { id: st
               <ConfirmAdmissionButton admissionId={admission.id} />
             </>
           )}
+          {admission.status === "CONFIRMED" && isWriteAllowed && (
+            <IssueTcButton admissionId={admission.id} />
+          )}
           <Button size="sm" variant="outline" asChild>
             <Link href={`/admissions/${admission.id}/print`}><Printer className="mr-1 h-4 w-4" />Print</Link>
           </Button>
+          {isWriteAllowed && (
+            <HardDeleteButton admissionId={admission.id} redirectUrl="/admissions" />
+          )}
         </div>
       </div>
 

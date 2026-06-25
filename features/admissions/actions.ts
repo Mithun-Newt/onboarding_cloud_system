@@ -669,7 +669,7 @@ export async function getRemainingVacancyForGrade(gradeId: string, academicYearI
       where: {
         gradeId,
         academicYearId,
-        status: "CONFIRMED",
+        status: { in: ["CONFIRMED", "TC_ISSUED"] },
       },
     });
 
