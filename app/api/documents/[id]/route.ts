@@ -25,7 +25,12 @@ export async function GET(
       return new NextResponse("Document not found", { status: 404 });
     }
 
-    // 3. Read the file from local storage
+    // 3. Redirect if file is stored in Cloudinary (URL)
+    if (document.filePath.startsWith("http://") || document.filePath.startsWith("https://")) {
+      return NextResponse.redirect(document.filePath);
+    }
+
+    // 4. Read the file from local storage
     const fullPath = path.join(process.cwd(), document.filePath);
     try {
       const fileBuffer = await readFile(fullPath);
