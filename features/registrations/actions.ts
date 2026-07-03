@@ -339,6 +339,7 @@ export async function getRegistrations(params: {
           { registrationNo: { contains: params.search, mode: "insensitive" } },
           { fatherMobile: { contains: params.search } },
           { motherMobile: { contains: params.search } },
+          { primaryContact: { contains: params.search } },
         ]
       });
     }
