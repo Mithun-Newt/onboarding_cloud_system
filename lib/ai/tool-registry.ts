@@ -17,6 +17,7 @@ import { getTodayAdmissionsTool } from './tools/get-today-admissions';
 import { getRegistrationConversionSummaryTool } from './tools/get-registration-conversion-summary';
 import { getRouteManifestTool } from './tools/get-route-manifest';
 import { getTransportSummaryTool } from './tools/get-transport-summary';
+import { getDailyAiBriefingTool } from './tools/get-daily-ai-briefing';
 
 /**
  * Centralized Tool Registry for the School AI Coworker.
@@ -41,4 +42,5 @@ export const toolRegistry: Record<string, AIToolConfig> = {
   get_registration_conversion_summary: getRegistrationConversionSummaryTool,
   get_route_manifest: getRouteManifestTool,
   get_transport_summary: getTransportSummaryTool,
+  get_daily_ai_briefing: getDailyAiBriefingTool,
 };
