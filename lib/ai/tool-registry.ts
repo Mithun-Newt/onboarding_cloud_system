@@ -18,6 +18,9 @@ import { getRegistrationConversionSummaryTool } from './tools/get-registration-c
 import { getRouteManifestTool } from './tools/get-route-manifest';
 import { getTransportSummaryTool } from './tools/get-transport-summary';
 import { getDailyAiBriefingTool } from './tools/get-daily-ai-briefing';
+import { getFeeRecoveryAnalysisTool } from './tools/get-fee-recovery-analysis';
+import { getOccupancyPredictionsTool } from './tools/get-occupancy-predictions';
+import { getRegistrationConversionAnalysisTool } from './tools/get-registration-conversion-analysis';
 
 /**
  * Centralized Tool Registry for the School AI Coworker.
@@ -43,4 +46,7 @@ export const toolRegistry: Record<string, AIToolConfig> = {
   get_route_manifest: getRouteManifestTool,
   get_transport_summary: getTransportSummaryTool,
   get_daily_ai_briefing: getDailyAiBriefingTool,
+  get_fee_recovery_analysis: getFeeRecoveryAnalysisTool,
+  get_occupancy_predictions: getOccupancyPredictionsTool,
+  get_registration_conversion_analysis: getRegistrationConversionAnalysisTool,
 };
