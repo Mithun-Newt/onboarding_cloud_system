@@ -33,8 +33,7 @@ function LoginForm() {
       if (result?.error) {
         toast.error("Invalid username or password");
       } else {
-        router.push(callbackUrl);
-        router.refresh();
+        window.location.href = callbackUrl;
       }
     } finally {
       setLoading(false);
