@@ -103,22 +103,26 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      if (url.startsWith("/")) {
-        return url;
-      }
       try {
         const parsedUrl = new URL(url);
-        const parsedBase = new URL(baseUrl);
+        const baseWithProto = baseUrl.startsWith("http://") || baseUrl.startsWith("https://")
+          ? baseUrl
+          : `http://${baseUrl}`;
+        const parsedBase = new URL(baseWithProto);
         if (
           parsedUrl.origin === parsedBase.origin ||
           parsedUrl.hostname === "localhost" ||
           parsedUrl.hostname === "127.0.0.1" ||
           parsedUrl.hostname.endsWith(".render.com")
         ) {
-          return parsedUrl.pathname + parsedUrl.search;
+          return url;
         }
       } catch (e) {
         // Ignore parsing errors and fallback
+      }
+
+      if (url.startsWith("/")) {
+        return url;
       }
       return "/dashboard";
     },
