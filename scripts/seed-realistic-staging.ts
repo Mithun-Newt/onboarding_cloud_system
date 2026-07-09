@@ -64,10 +64,8 @@ async function seedStaging() {
   // Find or create a bus route & stop
   const busRoute = await prisma.busRoute.findFirst() || await prisma.busRoute.create({
     data: {
-      routeName: "Route A - City Center",
-      busNo: "BUS-101",
-      driverName: "Ramesh Singh",
-      driverPhone: "9876543210"
+      routeNo: "R-101",
+      name: "Route A - City Center"
     }
   });
 
@@ -192,7 +190,7 @@ async function seedStaging() {
 
     // Handle Admissions Applications (for index 1 to 20)
     if (isAdmission) {
-      let admStatus = AdmissionStatus.DRAFT;
+      let admStatus: AdmissionStatus = AdmissionStatus.DRAFT;
       if (i <= 5) admStatus = AdmissionStatus.CONFIRMED;
       else if (i <= 10) admStatus = AdmissionStatus.DRAFT;
       else if (i <= 15) admStatus = AdmissionStatus.DRAFT; // In the UI, status defaults can represent pending verification
@@ -255,7 +253,7 @@ async function seedStaging() {
       // 7 Partially Paid (amount = 15000, status = PARTIAL; pay 5000) (i = 8 to 14)
       // 6 Outstanding (status = PENDING; pay 0) (i = 15 to 20)
       
-      let payStatus = PaymentStatus.PENDING;
+      let payStatus: PaymentStatus = PaymentStatus.PENDING;
       let payAmount = 0;
       if (i <= 7) {
         payStatus = PaymentStatus.PAID;
